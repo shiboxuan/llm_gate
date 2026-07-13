@@ -3,7 +3,7 @@
  * 用于批量探测 LLM Provider 端点支持的模型列表
  */
 import React, {useState, useCallback, useMemo, useRef} from 'react';
-import {Modal, Button, Checkbox, Input, message, Spin, Empty, Tag} from 'antd';
+import {Modal, Button, Input, message, Spin, Empty, Tag} from 'antd';
 import {
     PlusOutlined,
     DeleteOutlined,
@@ -18,16 +18,6 @@ import LLMGateSelect from '../LLMGateSelect';
 import {probeModels} from '@/api';
 import type {ApiProviderKey, ProbeResult} from '../../types';
 import './index.less';
-
-// Preset endpoint examples (editable placeholders; replace with your own provider hosts)
-const PRESET_ENDPOINTS = [
-    {id: 'preset-qwen', base_url: 'https://your-provider-host/v1', label: 'Qwen'},
-    {id: 'preset-openai', base_url: 'https://your-provider-host/v1', label: 'OpenAI'},
-    {id: 'preset-kimi', base_url: 'https://your-provider-host/v1', label: 'Kimi'},
-    {id: 'preset-deepseek', base_url: 'https://your-provider-host/v1', label: 'DeepSeek'},
-    {id: 'preset-gemini', base_url: 'https://your-provider-host/v1', label: 'Gemini'},
-    {id: 'preset-claude', base_url: 'https://your-provider-host/v1', label: 'Claude'}
-];
 
 interface CustomTarget {
     id: string;
@@ -46,16 +36,6 @@ interface ModelDetectorProps {
 }
 
 const ModelDetector: React.FC<ModelDetectorProps> = ({visible, onClose, providerKeys}) => {
-    // Preset endpoint state
-    const [winkyProviderKey, setWinkyProviderKey] = useState<string>('');
-    const [winkySelected, setWinkySelected] = useState<Record<string, boolean>>(() => {
-        const initial: Record<string, boolean> = {};
-        PRESET_ENDPOINTS.forEach((ep) => {
-            initial[ep.id] = true;
-        });
-        return initial;
-    });
-
     // 自定义地址状态
     const [customTargets, setCustomTargets] = useState<CustomTarget[]>([]);
 
@@ -75,35 +55,6 @@ const ModelDetector: React.FC<ModelDetectorProps> = ({visible, onClose, provider
             })),
         [providerKeys]
     );
-
-    // Toggle preset endpoint selection
-    const handleWinkyToggle = useCallback((id: string) => {
-        setWinkySelected((prev) => ({
-            ...prev,
-            [id]: !prev[id]
-        }));
-    }, []);
-
-    // Select / deselect all preset endpoints
-    const handleWinkySelectAll = useCallback((checked: boolean) => {
-        setWinkySelected(() => {
-            const newState: Record<string, boolean> = {};
-            PRESET_ENDPOINTS.forEach((ep) => {
-                newState[ep.id] = checked;
-            });
-            return newState;
-        });
-    }, []);
-
-    // 检查是否全选
-    const isWinkyAllSelected = useMemo(() => {
-        return PRESET_ENDPOINTS.every((ep) => winkySelected[ep.id]);
-    }, [winkySelected]);
-
-    // Check if any preset endpoint is selected
-    const hasWinkySelected = useMemo(() => {
-        return PRESET_ENDPOINTS.some((ep) => winkySelected[ep.id]);
-    }, [winkySelected]);
 
     // 添加自定义地址
     const handleAddCustomTarget = useCallback(() => {
@@ -140,18 +91,6 @@ const ModelDetector: React.FC<ModelDetectorProps> = ({visible, onClose, provider
         // 构建探测目标列表
         const targets: {base_url: string; provider_key_name: string}[] = [];
 
-        // Add selected preset endpoints
-        if (winkyProviderKey) {
-            PRESET_ENDPOINTS.forEach((ep) => {
-                if (winkySelected[ep.id]) {
-                    targets.push({
-                        base_url: ep.base_url,
-                        provider_key_name: winkyProviderKey
-                    });
-                }
-            });
-        }
-
         // 添加自定义端点
         customTargets.forEach((t) => {
             if (t.base_url && t.provider_key_name) {
@@ -164,7 +103,7 @@ const ModelDetector: React.FC<ModelDetectorProps> = ({visible, onClose, provider
 
         // 验证
         if (targets.length === 0) {
-            message.warning('请选择至少一个探测目标，并配置 Provider Key');
+            message.warning('请添加至少一个探测目标，并配置 Provider Key');
             return;
         }
 
@@ -188,18 +127,10 @@ const ModelDetector: React.FC<ModelDetectorProps> = ({visible, onClose, provider
         } finally {
             setProbing(false);
         }
-    }, [winkyProviderKey, winkySelected, customTargets]);
+    }, [customTargets]);
 
     // 重置状态
     const handleReset = useCallback(() => {
-        setWinkyProviderKey('');
-        setWinkySelected(() => {
-            const initial: Record<string, boolean> = {};
-            PRESET_ENDPOINTS.forEach((ep) => {
-                initial[ep.id] = true;
-            });
-            return initial;
-        });
         setCustomTargets([]);
         setResults([]);
     }, []);
@@ -215,7 +146,7 @@ const ModelDetector: React.FC<ModelDetectorProps> = ({visible, onClose, provider
         try {
             const urlObj = new URL(url);
             const pathParts = urlObj.pathname.split('/').filter(Boolean);
-            // 返回路径的最后两部分（如 winky/claude）
+            // 返回路径的最后两部分（如 api/claude）
             if (pathParts.length >= 2) {
                 return pathParts.slice(-2, -1).join('/');
             }
@@ -305,55 +236,6 @@ const ModelDetector: React.FC<ModelDetectorProps> = ({visible, onClose, provider
                 </div>
             }
         >
-            {/* Preset endpoints section */}
-            <div className='detector-section winky-section'>
-                <div className='section-header'>
-                    <div className='section-title'>
-                        <Icon icon='heroicons:bolt' className='section-icon' />
-                        <span>Preset Endpoints</span>
-                    </div>
-                    <div className='section-actions'>
-                        <span className='provider-key-label'>Provider Key:</span>
-                        <LLMGateSelect
-                            placeholder='请选择 Provider Key'
-                            value={winkyProviderKey || undefined}
-                            onChange={(value) => setWinkyProviderKey(value as string)}
-                            options={providerKeyOptions}
-                            style={{width: 200}}
-                            showSearch
-                            filterOption={(input, option) =>
-                                String(option?.label ?? '')
-                                    .toLowerCase()
-                                    .includes(input.toLowerCase())
-                            }
-                        />
-                    </div>
-                </div>
-                <div className='section-content'>
-                    <div className='winky-select-all'>
-                        <Checkbox checked={isWinkyAllSelected} onChange={(e) => handleWinkySelectAll(e.target.checked)}>
-                            全选
-                        </Checkbox>
-                    </div>
-                    <div className='winky-list'>
-                        {PRESET_ENDPOINTS.map((ep) => (
-                            <div key={ep.id} className='winky-item'>
-                                <Checkbox checked={winkySelected[ep.id]} onChange={() => handleWinkyToggle(ep.id)}>
-                                    <span className='winky-label'>{ep.label}</span>
-                                    <span className='winky-url'>{ep.base_url}</span>
-                                </Checkbox>
-                            </div>
-                        ))}
-                    </div>
-                    {hasWinkySelected && !winkyProviderKey && (
-                        <div className='winky-warning'>
-                            <Icon icon='heroicons:exclamation-triangle' />
-                            <span>请选择 Provider Key，否则预设端点将不会被探测</span>
-                        </div>
-                    )}
-                </div>
-            </div>
-
             {/* 自定义端点区域 */}
             <div className='detector-section custom-section'>
                 <div className='section-header'>

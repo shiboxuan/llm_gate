@@ -8,7 +8,6 @@ import {Icon} from '@iconify/react';
 import ToolCard from '../ToolCard';
 import LLMGateSelect from '../LLMGateSelect';
 import {ToolConfig, RouteConfig, ErrorCode, ApiProviderKey, API_TYPE_OPTIONS, ApiType} from '../../types';
-import {mockTools, USE_MOCK_DATA, mockApiProviderKeys} from '../../mockData';
 import {
     getTools,
     createTool,
@@ -34,8 +33,8 @@ interface ToolManagementProps {
 
 const ToolManagement: React.FC<ToolManagementProps> = ({addToolBtnRef}) => {
     // 状态管理
-    const [tools, setTools] = useState<ToolConfig[]>(USE_MOCK_DATA ? mockTools : []);
-    const [loading, setLoading] = useState(!USE_MOCK_DATA);
+    const [tools, setTools] = useState<ToolConfig[]>([]);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     // 创建工具弹窗状态
@@ -65,8 +64,8 @@ const ToolManagement: React.FC<ToolManagementProps> = ({addToolBtnRef}) => {
     const [testConnectionResult, setTestConnectionResult] = useState<{latency?: number; message?: string}>({});
 
     // Provider Keys 缓存状态
-    const [providerKeys, setProviderKeys] = useState<ApiProviderKey[]>(USE_MOCK_DATA ? mockApiProviderKeys : []);
-    const [providerKeysLoaded, setProviderKeysLoaded] = useState(USE_MOCK_DATA);
+    const [providerKeys, setProviderKeys] = useState<ApiProviderKey[]>([]);
+    const [providerKeysLoaded, setProviderKeysLoaded] = useState(false);
 
     // 现有路由选择弹窗状态
     const [existingRoutesModalVisible, setExistingRoutesModalVisible] = useState(false);
@@ -112,11 +111,6 @@ const ToolManagement: React.FC<ToolManagementProps> = ({addToolBtnRef}) => {
 
     // 获取工具列表
     const fetchTools = async () => {
-        if (USE_MOCK_DATA) {
-            setTools(mockTools);
-            return;
-        }
-
         try {
             setLoading(true);
             setError(null);
@@ -134,12 +128,6 @@ const ToolManagement: React.FC<ToolManagementProps> = ({addToolBtnRef}) => {
 
     // 获取 Provider Keys
     const fetchProviderKeys = useCallback(async () => {
-        if (USE_MOCK_DATA) {
-            setProviderKeys(mockApiProviderKeys);
-            setProviderKeysLoaded(true);
-            return;
-        }
-
         try {
             const response = await getProviderKeys();
             setProviderKeys(response.data);
@@ -172,39 +160,17 @@ const ToolManagement: React.FC<ToolManagementProps> = ({addToolBtnRef}) => {
             const values = await createForm.validateFields();
             setCreateLoading(true);
 
-            if (USE_MOCK_DATA) {
-                // 模拟创建
-                const newTool: ToolConfig = {
-                    id: String(Date.now()),
-                    name: values.name,
-                    description: values.description || '',
-                    icon: 'heroicons:cpu-chip',
-                    iconColor: '#6366f1',
-                    iconBgColor: 'linear-gradient(to bottom right, #e0e7ff, #f0f0ff)',
-                    apiKey: 'sk-llmgate-' + Math.random().toString(36).substring(2, 15),
-                    status: 'configuring',
-                    apiType: values.api_type || 'openai_chat',
-                    routes: []
-                };
-                setTools([...tools, newTool]);
-                setNewApiKey(newTool.apiKey);
-                setIsRegeneratedKey(false);
-                setCreateModalVisible(false);
-                setApiKeyModalVisible(true);
-                message.success('工具创建成功');
-            } else {
-                const response = await createTool({
-                    name: values.name.trim(),
-                    description: values.description?.trim() || undefined,
-                    api_type: values.api_type || 'openai_chat'
-                });
-                await fetchTools();
-                setNewApiKey(response.data.api_key);
-                setIsRegeneratedKey(false);
-                setCreateModalVisible(false);
-                setApiKeyModalVisible(true);
-                message.success('工具创建成功');
-            }
+            const response = await createTool({
+                name: values.name.trim(),
+                description: values.description?.trim() || undefined,
+                api_type: values.api_type || 'openai_chat'
+            });
+            await fetchTools();
+            setNewApiKey(response.data.api_key);
+            setIsRegeneratedKey(false);
+            setCreateModalVisible(false);
+            setApiKeyModalVisible(true);
+            message.success('工具创建成功');
         } catch (err: any) {
             if (err.response?.data?.code === ErrorCode.TOOL_NAME_DUPLICATE) {
                 createForm.setFields([{name: 'name', errors: ['工具名称已存在，请使用其他名称']}]);
@@ -235,26 +201,14 @@ const ToolManagement: React.FC<ToolManagementProps> = ({addToolBtnRef}) => {
             const values = await editForm.validateFields();
             setEditLoading(true);
 
-            if (USE_MOCK_DATA) {
-                setTools(
-                    tools.map((t) =>
-                        t.id === editingTool.id
-                            ? {...t, name: values.name, description: values.description || '', apiType: values.api_type}
-                            : t
-                    )
-                );
-                setEditModalVisible(false);
-                message.success('工具更新成功');
-            } else {
-                await updateTool(Number(editingTool.id), {
-                    name: values.name.trim(),
-                    description: values.description?.trim() || undefined,
-                    api_type: values.api_type
-                });
-                await fetchTools();
-                setEditModalVisible(false);
-                message.success('工具更新成功');
-            }
+            await updateTool(Number(editingTool.id), {
+                name: values.name.trim(),
+                description: values.description?.trim() || undefined,
+                api_type: values.api_type
+            });
+            await fetchTools();
+            setEditModalVisible(false);
+            message.success('工具更新成功');
         } catch (err: any) {
             if (err.response?.data?.code === ErrorCode.TOOL_NAME_DUPLICATE) {
                 editForm.setFields([{name: 'name', errors: ['工具名称已存在，请使用其他名称']}]);
@@ -268,17 +222,12 @@ const ToolManagement: React.FC<ToolManagementProps> = ({addToolBtnRef}) => {
 
     // 删除工具
     const handleDeleteTool = async (toolId: string) => {
-        if (USE_MOCK_DATA) {
-            setTools(tools.filter((t) => t.id !== toolId));
+        try {
+            await deleteTool(Number(toolId));
+            await fetchTools();
             message.success('工具删除成功');
-        } else {
-            try {
-                await deleteTool(Number(toolId));
-                await fetchTools();
-                message.success('工具删除成功');
-            } catch {
-                message.error('删除工具失败');
-            }
+        } catch {
+            message.error('删除工具失败');
         }
     };
 
@@ -296,21 +245,13 @@ const ToolManagement: React.FC<ToolManagementProps> = ({addToolBtnRef}) => {
             okText: '确定重新生成',
             cancelText: '取消',
             onOk: async () => {
-                if (USE_MOCK_DATA) {
-                    const newKey = 'sk-llmgate-' + Math.random().toString(36).substring(2, 15);
-                    setTools(tools.map((t) => (t.id === toolId ? {...t, apiKey: newKey} : t)));
-                    setNewApiKey(newKey);
+                try {
+                    const response = await regenerateToolKey(Number(toolId));
+                    setNewApiKey(response.data.api_key);
                     setIsRegeneratedKey(true);
                     setApiKeyModalVisible(true);
-                } else {
-                    try {
-                        const response = await regenerateToolKey(Number(toolId));
-                        setNewApiKey(response.data.api_key);
-                        setIsRegeneratedKey(true);
-                        setApiKeyModalVisible(true);
-                    } catch {
-                        message.error('重新生成Key失败');
-                    }
+                } catch {
+                    message.error('重新生成Key失败');
                 }
             }
         });
@@ -354,46 +295,18 @@ const ToolManagement: React.FC<ToolManagementProps> = ({addToolBtnRef}) => {
             const values = await addRouteForm.validateFields();
             setAddRouteLoading(true);
 
-            if (USE_MOCK_DATA) {
-                // 模拟添加
-                const targetTool = tools.find((t) => t.id === addRouteToolId);
-                const maxOrder = targetTool ? Math.max(0, ...targetTool.routes.map((r) => r.order)) : 0;
-                const newRoute: RouteConfig = {
-                    id: values.name,
-                    name: values.name,
-                    provider: values.provider_key_name,
-                    endpoint: values.base_url,
-                    modelName: values.model,
-                    enabled: false,
-                    order: maxOrder + 1
-                };
-                setTools(
-                    tools.map((tool) => {
-                        if (tool.id === addRouteToolId) {
-                            return {
-                                ...tool,
-                                routes: [...tool.routes, newRoute]
-                            };
-                        }
-                        return tool;
-                    })
-                );
-                setAddRouteModalVisible(false);
-                message.success('路由添加成功');
-            } else {
-                await addRoute(Number(addRouteToolId), {
-                    name: values.name.trim(),
-                    provider: '',
-                    base_url: values.base_url.trim(),
-                    model: values.model.trim(),
-                    provider_key_name: values.provider_key_name,
-                    api_path: '',
-                    set_active: false
-                });
-                await fetchTools();
-                setAddRouteModalVisible(false);
-                message.success('路由添加成功');
-            }
+            await addRoute(Number(addRouteToolId), {
+                name: values.name.trim(),
+                provider: '',
+                base_url: values.base_url.trim(),
+                model: values.model.trim(),
+                provider_key_name: values.provider_key_name,
+                api_path: '',
+                set_active: false
+            });
+            await fetchTools();
+            setAddRouteModalVisible(false);
+            message.success('路由添加成功');
         } catch (err: any) {
             if (err.response?.data?.code === ErrorCode.ROUTE_NAME_DUPLICATE) {
                 addRouteForm.setFields([{name: 'name', errors: ['路由名称已存在']}]);
@@ -422,26 +335,19 @@ const ToolManagement: React.FC<ToolManagementProps> = ({addToolBtnRef}) => {
         setTestConnectionResult({});
 
         try {
-            if (USE_MOCK_DATA) {
-                // 模拟测试结果
-                await new Promise((resolve) => setTimeout(resolve, 1500));
-                setTestConnectionStatus('success');
-                setTestConnectionResult({latency: 320});
-            } else {
-                const response = await testConnection({
-                    api_type: apiType,
-                    base_url: values.base_url.trim(),
-                    model: values.model.trim(),
-                    provider_key_name: values.provider_key_name
-                });
+            const response = await testConnection({
+                api_type: apiType,
+                base_url: values.base_url.trim(),
+                model: values.model.trim(),
+                provider_key_name: values.provider_key_name
+            });
 
-                if (response.data.success) {
-                    setTestConnectionStatus('success');
-                    setTestConnectionResult({latency: response.data.latency_ms});
-                } else {
-                    setTestConnectionStatus('error');
-                    setTestConnectionResult({message: response.data.message});
-                }
+            if (response.data.success) {
+                setTestConnectionStatus('success');
+                setTestConnectionResult({latency: response.data.latency_ms});
+            } else {
+                setTestConnectionStatus('error');
+                setTestConnectionResult({message: response.data.message});
             }
         } catch (error: any) {
             setTestConnectionStatus('error');
@@ -473,84 +379,31 @@ const ToolManagement: React.FC<ToolManagementProps> = ({addToolBtnRef}) => {
             return;
         }
 
-        if (USE_MOCK_DATA) {
-            setTools(
-                tools.map((t) => {
-                    if (t.id === toolId) {
-                        return {
-                            ...t,
-                            routes: t.routes.filter((r) => r.id !== routeId)
-                        };
-                    }
-                    return t;
-                })
-            );
+        try {
+            await deleteRoute(Number(toolId), routeId);
+            await fetchTools();
             message.success('路由删除成功');
-        } else {
-            try {
-                await deleteRoute(Number(toolId), routeId);
-                await fetchTools();
-                message.success('路由删除成功');
-            } catch (err: any) {
-                if (err.response?.data?.code === ErrorCode.ROUTE_DELETE_FAILED) {
-                    message.error('不能删除激活中的路由');
-                } else {
-                    message.error('删除路由失败');
-                }
+        } catch (err: any) {
+            if (err.response?.data?.code === ErrorCode.ROUTE_DELETE_FAILED) {
+                message.error('不能删除激活中的路由');
+            } else {
+                message.error('删除路由失败');
             }
         }
     };
 
     // 切换激活路由
     const handleToggleRoute = async (toolId: string, routeId: string, enabled: boolean): Promise<void> => {
-        if (USE_MOCK_DATA) {
-            if (enabled) {
-                // 激活路由
-                setTools(
-                    tools.map((tool) => {
-                        if (tool.id === toolId) {
-                            return {
-                                ...tool,
-                                routes: tool.routes.map((r) => ({
-                                    ...r,
-                                    enabled: r.id === routeId
-                                }))
-                            };
-                        }
-                        return tool;
-                    })
-                );
-                message.success('路由已激活');
-            } else {
-                // 关闭路由（取消激活）
-                setTools(
-                    tools.map((tool) => {
-                        if (tool.id === toolId) {
-                            return {
-                                ...tool,
-                                routes: tool.routes.map((r) => ({
-                                    ...r,
-                                    enabled: false
-                                }))
-                            };
-                        }
-                        return tool;
-                    })
-                );
-                message.success('路由已关闭');
-            }
+        if (enabled) {
+            // 激活路由
+            await activateRoute(Number(toolId), routeId);
+            await fetchTools();
+            message.success('路由已激活');
         } else {
-            if (enabled) {
-                // 激活路由
-                await activateRoute(Number(toolId), routeId);
-                await fetchTools();
-                message.success('路由已激活');
-            } else {
-                // 关闭路由（取消激活）
-                await deactivateRoute(Number(toolId));
-                await fetchTools();
-                message.success('路由已关闭');
-            }
+            // 关闭路由（取消激活）
+            await deactivateRoute(Number(toolId));
+            await fetchTools();
+            message.success('路由已关闭');
         }
     };
 
@@ -705,14 +558,12 @@ const ToolManagement: React.FC<ToolManagementProps> = ({addToolBtnRef}) => {
                 })
             );
 
-            if (!USE_MOCK_DATA) {
-                try {
-                    await reorderRoutes(Number(toolId), {orders});
-                } catch {
-                    // 失败时回滚
-                    setTools(originalTools);
-                    message.error('排序失败，已恢复');
-                }
+            try {
+                await reorderRoutes(Number(toolId), {orders});
+            } catch {
+                // 失败时回滚
+                setTools(originalTools);
+                message.error('排序失败，已恢复');
             }
         },
         [tools]
@@ -737,44 +588,17 @@ const ToolManagement: React.FC<ToolManagementProps> = ({addToolBtnRef}) => {
         setDragCopyLoading(true);
 
         try {
-            if (USE_MOCK_DATA) {
-                // 模拟添加
-                const targetTool = tools.find((t) => t.id === targetToolId);
-                const maxOrder = targetTool ? Math.max(0, ...targetTool.routes.map((r) => r.order)) : 0;
-                const newRoute: RouteConfig = {
-                    id: uniqueName,
-                    name: uniqueName,
-                    provider: sourceRoute.provider,
-                    endpoint: sourceRoute.endpoint,
-                    modelName: sourceRoute.modelName,
-                    enabled: false,
-                    order: maxOrder + 1
-                };
-                setTools(
-                    tools.map((tool) => {
-                        if (tool.id === targetToolId) {
-                            return {
-                                ...tool,
-                                routes: [...tool.routes, newRoute]
-                            };
-                        }
-                        return tool;
-                    })
-                );
-                message.success('路由复制成功');
-            } else {
-                await addRoute(Number(targetToolId), {
-                    name: uniqueName,
-                    provider: '',
-                    base_url: sourceRoute.endpoint,
-                    model: sourceRoute.modelName,
-                    provider_key_name: sourceRoute.provider,
-                    api_path: '',
-                    set_active: false
-                });
-                await fetchTools();
-                message.success('路由复制成功');
-            }
+            await addRoute(Number(targetToolId), {
+                name: uniqueName,
+                provider: '',
+                base_url: sourceRoute.endpoint,
+                model: sourceRoute.modelName,
+                provider_key_name: sourceRoute.provider,
+                api_path: '',
+                set_active: false
+            });
+            await fetchTools();
+            message.success('路由复制成功');
         } catch (err: any) {
             if (err.response?.data?.code === ErrorCode.ROUTE_NAME_DUPLICATE) {
                 message.error('路由名称已存在，请重试');
@@ -805,11 +629,6 @@ const ToolManagement: React.FC<ToolManagementProps> = ({addToolBtnRef}) => {
                 return tool;
             })
         );
-
-        if (USE_MOCK_DATA) {
-            // Mock 模式下直接成功
-            return;
-        }
 
         try {
             // 构建更新参数

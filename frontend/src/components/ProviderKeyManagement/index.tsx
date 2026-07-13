@@ -15,7 +15,6 @@ import {
 } from '@ant-design/icons';
 import {Icon} from '@iconify/react';
 import {ApiProviderKey} from '../../types';
-import {mockApiProviderKeys, USE_MOCK_DATA} from '../../mockData';
 import * as llmGateApi from '@/api';
 import './index.less';
 
@@ -41,13 +40,8 @@ const ProviderKeyManagement: React.FC = () => {
             setLoading(true);
             setError(null);
 
-            if (USE_MOCK_DATA) {
-                await new Promise((resolve) => setTimeout(resolve, 500));
-                setKeys(mockApiProviderKeys);
-            } else {
-                const response = await llmGateApi.getProviderKeys();
-                setKeys(response.data);
-            }
+            const response = await llmGateApi.getProviderKeys();
+            setKeys(response.data);
         } catch (err) {
             setError('获取密钥列表失败');
             message.error('获取密钥列表失败');
@@ -66,24 +60,12 @@ const ProviderKeyManagement: React.FC = () => {
             const values = await form.validateFields();
             setCreateLoading(true);
 
-            if (USE_MOCK_DATA) {
-                const newKey: ApiProviderKey = {
-                    id: Date.now(),
-                    user_id: 'mock_user',
-                    name: values.name.trim(),
-                    status: 1,
-                    created_at: new Date().toISOString()
-                };
-                setKeys((prev) => [...prev, newKey]);
-                message.success('密钥创建成功');
-            } else {
-                await llmGateApi.createProviderKey({
-                    name: values.name.trim(),
-                    api_key: values.api_key.trim()
-                });
-                message.success('密钥创建成功，已安全加密存储');
-                fetchKeys();
-            }
+            await llmGateApi.createProviderKey({
+                name: values.name.trim(),
+                api_key: values.api_key.trim()
+            });
+            message.success('密钥创建成功，已安全加密存储');
+            fetchKeys();
 
             form.resetFields();
             setCreateModalVisible(false);
@@ -128,14 +110,10 @@ const ProviderKeyManagement: React.FC = () => {
                 try {
                     setUpdateLoading(true);
 
-                    if (USE_MOCK_DATA) {
-                        message.success('密钥更新成功');
-                    } else {
-                        await llmGateApi.updateProviderKey(keyId, {
-                            api_key: newKeyValue.trim()
-                        });
-                        message.success('密钥更新成功');
-                    }
+                    await llmGateApi.updateProviderKey(keyId, {
+                        api_key: newKeyValue.trim()
+                    });
+                    message.success('密钥更新成功');
 
                     handleCancelEdit();
                 } catch (error) {
@@ -169,14 +147,9 @@ const ProviderKeyManagement: React.FC = () => {
             okButtonProps: {danger: true},
             onOk: async () => {
                 try {
-                    if (USE_MOCK_DATA) {
-                        setKeys((prev) => prev.filter((k) => k.id !== key.id));
-                        message.success('密钥删除成功');
-                    } else {
-                        await llmGateApi.deleteProviderKey(key.id);
-                        setKeys((prev) => prev.filter((k) => k.id !== key.id));
-                        message.success('密钥删除成功');
-                    }
+                    await llmGateApi.deleteProviderKey(key.id);
+                    setKeys((prev) => prev.filter((k) => k.id !== key.id));
+                    message.success('密钥删除成功');
                 } catch (error) {
                     message.error('删除失败，请重试');
                 }
