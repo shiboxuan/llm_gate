@@ -11,8 +11,8 @@ redis==6.1.1              # 异步 Redis 客户端
 
 # 安全
 python-jose[cryptography]>=3.3.0  # JWT Token
-cryptography>=42.0.0              # AES 加密
-passlib[bcrypt]>=1.7.4            # 密码哈希（bcrypt）
+cryptography>=42.0.0,<49        # AES 加密（<49：49 起不再提供 Intel Mac 预编译 wheel）
+bcrypt>=4.0.0                     # 密码哈希（bcrypt）
 
 # HTTP 客户端
 httpx>=0.26.0             # 异步 HTTP 客户端（用于代理转发请求）

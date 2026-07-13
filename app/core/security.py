@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, Iterable, List
 from jose import jwt, JWTError
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from passlib.context import CryptContext
+import bcrypt
 import secrets
 import hashlib
 import base64
@@ -17,9 +17,6 @@ from app.config import get_settings, get_current_time
 from app.logger_mgr import get_logger
 
 logger = get_logger("app.core.security")
-
-# bcrypt 密码哈希上下文
-_pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 # ==================== JWT Token ====================
@@ -236,8 +233,7 @@ def hash_password(password: str) -> str:
     Returns:
         bcrypt 哈希字符串
     """
-    hashed = _pwd_context.hash(password)
-    return hashed
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(password: str, password_hash: str) -> bool:
@@ -251,8 +247,7 @@ def verify_password(password: str, password_hash: str) -> bool:
         是否匹配
     """
     try:
-        ok = _pwd_context.verify(password, password_hash)
-        return ok
+        return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
     except Exception:
         return False
 
