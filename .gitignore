@@ -10,3 +10,6 @@ scratch/
 *.scratch.py
 .DS_Store
 docs/sanitization-report.md
+
+# 前端构建产物托管目录（本地开发用软链接指向 frontend/build，镜像部署时由 Dockerfile 生成）
+/static
