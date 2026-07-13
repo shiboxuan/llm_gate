@@ -1,0 +1,314 @@
+/**
+ * 供应商密钥管理样式
+ */
+
+.provider-key-management {
+    max-width: 640px;
+    animation: fadeIn 0.3s ease-out forwards;
+
+    .key-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        padding: 32px;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+
+        // 加载和错误状态
+        &.loading,
+        &.error {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+            gap: 16px;
+
+            p {
+                color: #64748b;
+                font-size: 14px;
+            }
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 24px 0;
+
+            .title-icon {
+                color: #6366f1;
+                font-size: 24px;
+            }
+        }
+
+        .card-description {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 32px;
+        }
+
+        .key-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+
+            // 空状态
+            .ant-empty {
+                padding: 40px 0;
+            }
+
+            .key-item {
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                padding: 16px;
+                transition: all 0.2s ease;
+
+                &:hover {
+                    border-color: #cbd5e1;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                }
+
+                .key-item-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 12px;
+
+                    .key-name {
+                        font-weight: 600;
+                        color: #1e293b;
+                        font-size: 14px;
+                    }
+
+                    .key-status {
+                        font-size: 12px;
+                        padding: 2px 8px;
+                        border-radius: 4px;
+                        font-weight: 500;
+
+                        &.active {
+                            background: #dcfce7;
+                            color: #166534;
+                        }
+
+                        &.inactive {
+                            background: #fee2e2;
+                            color: #991b1b;
+                        }
+                    }
+                }
+
+                .key-input-wrapper {
+                    position: relative;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+
+                    .key-input {
+                        flex: 1;
+                        background-color: #ffffff;
+                        border: 1px solid #e2e8f0;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        transition: all 0.2s ease;
+
+                        &:hover {
+                            border-color: #cbd5e1;
+                        }
+
+                        &:focus {
+                            border-color: #6366f1;
+                            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+                        }
+
+                        .ant-input-prefix {
+                            color: #94a3b8;
+                        }
+                    }
+
+                    // 操作按钮
+                    .ant-btn-text {
+                        color: #94a3b8;
+                        padding: 4px 8px;
+
+                        &:hover:not(:disabled) {
+                            color: #6366f1;
+                            background: rgba(99, 102, 241, 0.1);
+                        }
+
+                        &:disabled {
+                            color: #cbd5e1;
+                        }
+
+                        &.ant-btn-dangerous:hover {
+                            color: #ef4444;
+                            background: rgba(239, 68, 68, 0.1);
+                        }
+                    }
+
+                    // 编辑模式下的按钮
+                    .ant-btn-primary {
+                        border-radius: 6px;
+                    }
+
+                    .ant-btn-default {
+                        border-radius: 6px;
+                    }
+                }
+
+                .key-item-footer {
+                    margin-top: 12px;
+                    padding-top: 12px;
+                    border-top: 1px solid #e2e8f0;
+
+                    .create-time {
+                        font-size: 12px;
+                        color: #94a3b8;
+                    }
+                }
+            }
+        }
+
+        .card-footer {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: flex-end;
+
+            .add-config-btn {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 12px 32px;
+                height: auto;
+                font-size: 14px;
+                font-weight: 700;
+                border-radius: 12px;
+                background-color: #6366f1;
+                border-color: #6366f1;
+                box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+
+                &:hover {
+                    background-color: #4f46e5;
+                    border-color: #4f46e5;
+                }
+
+                &:active {
+                    transform: scale(0.95);
+                }
+            }
+        }
+    }
+}
+
+// 创建密钥 Modal 样式
+.ant-modal {
+    .ant-modal-content {
+        border-radius: 16px;
+    }
+
+    .ant-modal-header {
+        border-radius: 16px 16px 0 0;
+    }
+
+    .ant-form-item-extra {
+        font-size: 12px;
+        color: #94a3b8;
+        margin-top: 4px;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// ==================== 深色模式 ====================
+.llm-dark {
+    .provider-key-management {
+        .key-card {
+            background: var(--llm-card-bg);
+            border-color: var(--llm-border);
+
+            .card-title {
+                color: var(--llm-text-primary);
+
+                .title-icon {
+                    color: var(--llm-accent);
+                }
+            }
+
+            .card-description {
+                color: var(--llm-text-muted);
+            }
+
+            .key-list {
+                .key-item {
+                    background: var(--llm-bg-secondary);
+                    border-color: var(--llm-border);
+
+                    &:hover {
+                        border-color: var(--llm-text-muted);
+                    }
+
+                    .key-item-header {
+                        .key-name {
+                            color: var(--llm-text-primary);
+                        }
+                    }
+
+                    .key-input-wrapper {
+                        .key-input {
+                            background-color: var(--llm-bg-primary);
+                            border-color: var(--llm-border);
+
+                            &:hover {
+                                border-color: var(--llm-text-muted);
+                            }
+
+                            &:focus {
+                                border-color: var(--llm-accent);
+                            }
+
+                            .ant-input-prefix {
+                                color: var(--llm-text-disabled);
+                            }
+                        }
+
+                        .ant-btn-text {
+                            color: var(--llm-text-disabled);
+
+                            &:hover:not(:disabled) {
+                                color: var(--llm-accent);
+                                background: rgba(99, 102, 241, 0.15);
+                            }
+                        }
+                    }
+
+                    .key-item-footer {
+                        border-color: var(--llm-border);
+
+                        .create-time {
+                            color: var(--llm-text-disabled);
+                        }
+                    }
+                }
+            }
+
+            .card-footer {
+                border-color: var(--llm-border);
+            }
+        }
+    }
+}

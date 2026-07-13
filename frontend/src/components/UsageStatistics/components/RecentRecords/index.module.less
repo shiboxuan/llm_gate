@@ -1,0 +1,368 @@
+/**
+ * 最近请求记录组件样式
+ * 文件位置：src/view/LLMGate/components/UsageStatistics/components/RecentRecords/index.module.less
+ */
+
+.recentRecords {
+    background-color: var(--llm-card-bg);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: var(--llm-card-shadow);
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--llm-text-primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        > svg {
+            font-size: 20px;
+            color: var(--llm-accent);
+        }
+    }
+
+    .totalCount {
+        font-size: 13px;
+        font-weight: 400;
+        color: var(--llm-text-disabled);
+        margin-left: 8px;
+    }
+
+    .limitTabs {
+        display: flex;
+        gap: 8px;
+    }
+
+    .limitTab {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        background-color: var(--llm-bg-hover);
+        color: var(--llm-text-muted);
+
+        &:hover:not(.active) {
+            background-color: var(--llm-border);
+        }
+
+        &.active {
+            background-color: var(--llm-accent);
+            color: #fff;
+        }
+    }
+
+    .content {
+        min-height: 200px;
+    }
+
+    .loadingWrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 200px;
+    }
+
+    .recordList {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .recordItem {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        background-color: var(--llm-bg-secondary);
+        border-radius: 10px;
+        transition: all 0.2s;
+
+        &:hover {
+            background-color: var(--llm-bg-hover);
+            transform: translateX(2px);
+        }
+    }
+
+    .recordMain {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .statusIndicator {
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        font-size: 18px;
+
+        &.success {
+            color: #22c55e;
+        }
+
+        &.error {
+            color: #ef4444;
+        }
+    }
+
+    .modelIcon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 14px;
+        font-size: 18px;
+        color: #fff;
+        flex-shrink: 0;
+
+        &.iconClaude {
+            background: linear-gradient(135deg, #d4a574 0%, #c49660 100%);
+        }
+
+        &.iconOpenai {
+            background: linear-gradient(135deg, #10a37f 0%, #0d8a6a 100%);
+        }
+
+        &.iconGemini {
+            background: linear-gradient(135deg, #4285f4 0%, #3367d6 100%);
+        }
+
+        &.iconDefault {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        }
+    }
+
+    .recordInfo {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .modelName {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--llm-text-primary);
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .recordMeta {
+        font-size: 13px;
+        color: var(--llm-text-muted);
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .toolName {
+        color: var(--llm-text-muted);
+    }
+
+    .separator {
+        color: var(--llm-border);
+    }
+
+    .routeName {
+        color: var(--llm-text-disabled);
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 12px;
+    }
+
+    .errorMessage {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 6px;
+        font-size: 12px;
+        color: #ef4444;
+        background-color: #fef2f2;
+        padding: 4px 8px;
+        border-radius: 4px;
+        max-width: 300px;
+
+        > svg {
+            flex-shrink: 0;
+        }
+
+        > span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+
+    .recordStats {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        flex-shrink: 0;
+    }
+
+    .tokenCount {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background-color: var(--llm-bg-active);
+        border-radius: 8px;
+        cursor: default;
+
+        > svg {
+            font-size: 14px;
+            color: var(--llm-accent);
+        }
+
+        > span {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--llm-accent);
+        }
+    }
+
+    .recordTime {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        min-width: 80px;
+    }
+
+    .timeDate {
+        font-size: 12px;
+        color: var(--llm-text-disabled);
+    }
+
+    .timeValue {
+        font-size: 13px;
+        color: var(--llm-text-muted);
+        font-weight: 500;
+    }
+
+    .tokenTooltip {
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    .tokenDivider {
+        height: 1px;
+        background-color: rgba(255, 255, 255, 0.2);
+        margin: 4px 0;
+    }
+
+    .cacheIndicator {
+        display: flex;
+        align-items: center;
+        margin-left: 2px;
+
+        > svg {
+            font-size: 12px;
+            color: #f59e0b;
+        }
+    }
+
+    // ===== 调试模式样式 =====
+    .debugBadge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: 12px;
+        padding: 4px 10px;
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border: 1px solid #f59e0b;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #b45309;
+
+        > svg {
+            font-size: 14px;
+        }
+    }
+
+    .costBadge {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 10px;
+        background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #15803d;
+
+        > svg {
+            font-size: 14px;
+        }
+    }
+
+    .costInfo {
+        font-weight: 600;
+        color: #22c55e;
+    }
+}
+
+// ===== 深色模式适配 =====
+:global(.llm-dark) {
+    .recentRecords {
+        .debugBadge {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(253, 230, 138, 0.2) 100%);
+            border-color: rgba(245, 158, 11, 0.5);
+            color: #fbbf24;
+        }
+
+        .costBadge {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(187, 247, 208, 0.2) 100%);
+            color: #4ade80;
+        }
+
+        .errorMessage {
+            background-color: rgba(239, 68, 68, 0.15);
+        }
+    }
+}
+
+// 响应式适配
+@media (max-width: 768px) {
+    .recentRecords {
+        padding: 16px;
+
+        .header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .recordItem {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .recordStats {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .errorMessage {
+            max-width: 100%;
+        }
+    }
+}

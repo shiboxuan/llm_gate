@@ -1,0 +1,10 @@
+.env
+.idea
+scripts/llm_gate_env.json
+__pycache__/
+DockerfileDebug
+.claude/
+scratch/
+*.scratch.py
+.DS_Store
+docs/sanitization-report.md

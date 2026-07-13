@@ -1,0 +1,169 @@
+/**
+ * LLM Gate 专属 Select 下拉框样式
+ * 选中项使用浅紫色背景
+ */
+
+// ===== 下拉面板样式 =====
+.llm-gate-select-dropdown {
+    // 下拉面板圆角
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    // 选项通用样式
+    .ant-select-item {
+        border-radius: 4px;
+        margin: 2px 4px;
+        padding: 6px 12px;
+        transition: all 0.15s ease;
+    }
+
+    // 选项 hover 状态 - 更浅的紫色
+    .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+        background-color: #f5f3ff !important;
+    }
+
+    // 选中项样式 - 浅紫色背景
+    .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+        background-color: #ede9fe !important;
+        color: #6366f1 !important;
+        font-weight: 500;
+
+        // 选中图标颜色
+        .ant-select-item-option-state {
+            color: #6366f1 !important;
+        }
+    }
+
+    // 选中项 + hover 状态
+    .ant-select-item-option-selected.ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+        background-color: #e0e7ff !important;
+    }
+
+    // 分组标题样式
+    .ant-select-item-group {
+        color: #94a3b8;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    // 空状态样式
+    .ant-select-item-empty {
+        color: #94a3b8;
+    }
+}
+
+// ===== Select 输入框样式 =====
+.llm-gate-select {
+    // 基础样式
+    .ant-select-selector {
+        border-color: #e2e8f0 !important;
+        transition: all 0.15s ease;
+    }
+
+    // hover 状态
+    &:hover .ant-select-selector {
+        border-color: #a5b4fc !important;
+    }
+
+    // focus 状态
+    &.ant-select-focused .ant-select-selector {
+        border-color: #6366f1 !important;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15) !important;
+    }
+
+    // 选中值的样式
+    .ant-select-selection-item {
+        color: #334155;
+    }
+
+    // 箭头图标
+    .ant-select-arrow {
+        color: #94a3b8;
+        transition: color 0.15s ease;
+    }
+
+    &:hover .ant-select-arrow {
+        color: #6366f1;
+    }
+
+    // 清除按钮
+    .ant-select-clear {
+        background: #ffffff;
+        color: #94a3b8;
+
+        &:hover {
+            color: #6366f1;
+        }
+    }
+}
+
+// ==================== 深色模式 ====================
+.llm-dark {
+    // 下拉面板样式
+    .llm-gate-select-dropdown {
+        background-color: var(--llm-bg-secondary);
+        border: 1px solid var(--llm-border);
+
+        .ant-select-item {
+            color: var(--llm-text-secondary);
+        }
+
+        .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+            background-color: var(--llm-bg-hover) !important;
+        }
+
+        .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+            background-color: var(--llm-bg-active) !important;
+            color: var(--llm-accent) !important;
+        }
+
+        .ant-select-item-option-selected.ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+            background-color: var(--llm-bg-active) !important;
+        }
+
+        .ant-select-item-group {
+            color: var(--llm-text-disabled);
+        }
+
+        .ant-select-item-empty {
+            color: var(--llm-text-disabled);
+        }
+    }
+
+    // Select 输入框样式
+    .llm-gate-select {
+        .ant-select-selector {
+            background-color: var(--llm-input-bg) !important;
+            border-color: var(--llm-border) !important;
+        }
+
+        &:hover .ant-select-selector {
+            border-color: var(--llm-accent) !important;
+        }
+
+        &.ant-select-focused .ant-select-selector {
+            border-color: var(--llm-accent) !important;
+        }
+
+        .ant-select-selection-item {
+            color: var(--llm-text-secondary);
+        }
+
+        .ant-select-arrow {
+            color: var(--llm-text-disabled);
+        }
+
+        &:hover .ant-select-arrow {
+            color: var(--llm-accent);
+        }
+
+        .ant-select-clear {
+            background: var(--llm-input-bg);
+            color: var(--llm-text-disabled);
+
+            &:hover {
+                color: var(--llm-accent);
+            }
+        }
+    }
+}

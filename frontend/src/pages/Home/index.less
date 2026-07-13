@@ -1,0 +1,563 @@
+/**
+ * LLM Gate 管理仪表盘样式
+ */
+@import '@/styles/theme.less';
+
+.llm-gate-container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #f8fafc;
+
+    // 左侧导航栏
+    .llm-gate-sidebar {
+        width: 256px;
+        background: #ffffff;
+        border-right: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+
+        .sidebar-header {
+            padding: 24px;
+
+            .logo {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+
+                .logo-icon {
+                    font-size: 24px;
+                    color: #6366f1;
+                }
+
+                .logo-text {
+                    font-size: 20px;
+                    font-weight: 700;
+                    color: #6366f1;
+                    letter-spacing: -0.025em;
+                }
+            }
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            padding: 0 16px;
+            margin-top: 16px;
+            border-inline-end: none !important;
+
+            .ant-menu-item {
+                height: 48px;
+                line-height: 48px;
+                padding: 0 16px !important;
+                border-radius: 12px;
+                margin-bottom: 8px;
+                font-size: 14px;
+                color: #475569;
+                transition: all 0.2s ease;
+
+                .ant-menu-item-icon {
+                    font-size: 20px;
+                }
+
+                &:hover {
+                    background-color: #f8fafc;
+                    color: #475569;
+                }
+
+                &.ant-menu-item-selected {
+                    background-color: #eef2ff;
+                    color: #4338ca;
+                    font-weight: 500;
+
+                    &::after {
+                        display: none;
+                    }
+                }
+            }
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid #f1f5f9;
+
+            .status-card {
+                background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+                border-radius: 16px;
+                padding: 16px;
+                color: #ffffff;
+                transition: all 0.2s ease;
+
+                &:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+                }
+
+                &:active {
+                    transform: translateY(0);
+                }
+
+                // 异常状态样式
+                &.error {
+                    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+
+                    &:hover {
+                        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+                    }
+
+                    .status-dot.error {
+                        background-color: #fca5a5;
+                        animation: none;
+                    }
+                }
+
+                .status-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 8px;
+                }
+
+                .status-label {
+                    font-size: 12px;
+                    opacity: 0.8;
+                    margin: 0;
+                }
+
+                .status-latency {
+                    font-size: 11px;
+                    opacity: 0.7;
+                    font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+                    background: rgba(255, 255, 255, 0.15);
+                    padding: 2px 6px;
+                    border-radius: 4px;
+                }
+
+                .status-content {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    min-height: 24px;
+
+                    .status-text {
+                        font-size: 14px;
+                        font-weight: 600;
+                    }
+
+                    .status-dot {
+                        width: 8px;
+                        height: 8px;
+                        border-radius: 50%;
+                        background-color: #4ade80;
+                        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+                    }
+
+                    // Spin 组件在白色背景下的样式调整
+                    .ant-spin {
+                        .ant-spin-dot-item {
+                            background-color: rgba(255, 255, 255, 0.8);
+                        }
+                    }
+                }
+
+                .status-app-name {
+                    font-size: 11px;
+                    opacity: 0.7;
+                    margin: 8px 0 0 0;
+                    font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+                }
+            }
+        }
+    }
+
+    // 主内容区
+    .llm-gate-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        overflow: hidden;
+
+        .main-header {
+            height: 64px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+
+            .header-title {
+                font-size: 18px;
+                font-weight: 600;
+                color: #1e293b;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+
+                .header-help-icon {
+                    color: #94a3b8;
+                    font-size: 16px;
+                    cursor: pointer;
+                    transition: color 0.2s ease;
+
+                    &:hover {
+                        color: #6366f1;
+                    }
+                }
+            }
+
+            .header-actions {
+                display: flex;
+                align-items: center;
+                gap: 24px;
+
+                .notification-btn {
+                    color: #64748b;
+                    cursor: pointer;
+                    transition: color 0.2s ease;
+
+                    &:hover {
+                        color: #6366f1;
+                    }
+
+                    svg {
+                        font-size: 20px;
+                    }
+                }
+
+                .divider {
+                    height: 32px;
+                    width: 1px;
+                    background-color: #e2e8f0;
+                }
+
+                .user-info {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+
+                    .user-details {
+                        text-align: right;
+
+                        .user-name {
+                            font-size: 14px;
+                            font-weight: 700;
+                            color: #1e293b;
+                            margin: 0;
+                            line-height: 1;
+                        }
+
+                        .user-role {
+                            font-size: 10px;
+                            color: #94a3b8;
+                            text-transform: uppercase;
+                            letter-spacing: 0.05em;
+                            font-weight: 500;
+                            margin: 4px 0 0 0;
+                        }
+                    }
+
+                    .user-avatar {
+                        width: 40px;
+                        height: 40px;
+                        border-radius: 50%;
+                        background-color: #e0e7ff;
+                        border: 2px solid #ffffff;
+                        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: #6366f1;
+                        font-weight: 700;
+                        font-size: 16px;
+                    }
+                }
+            }
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+
+            // 隐藏滚动条但保持功能
+            &::-webkit-scrollbar {
+                display: none;
+            }
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+// ==================== 认证模块样式 ====================
+
+// 加载状态样式
+.llm-gate-loading {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 56px);
+    background: #f8fafc;
+    gap: 16px;
+
+    .ant-spin-text {
+        color: #64748b;
+        font-size: 14px;
+        margin-top: 16px;
+    }
+}
+
+// 用户头像图片样式
+.user-avatar-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    object-fit: cover;
+}
+
+// 新手引导按钮样式
+.guide-tour-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #6366f1;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 4px 12px;
+    height: 36px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+
+    &:hover {
+        color: #4f46e5;
+        background-color: #eef2ff;
+    }
+
+    .anticon {
+        font-size: 16px;
+    }
+}
+
+// 模型探测器按钮样式
+.detector-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    color: #64748b;
+    transition: all 0.2s ease;
+
+    &:hover {
+        color: #6366f1;
+        background-color: #eef2ff;
+    }
+
+    .anticon,
+    svg {
+        font-size: 18px;
+    }
+}
+
+// 主题切换按钮样式
+.theme-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    color: #64748b;
+    transition: all 0.2s ease;
+
+    &:hover {
+        color: #6366f1;
+        background-color: #eef2ff;
+    }
+
+    .anticon {
+        font-size: 18px;
+    }
+}
+
+// ==================== 全局 Ant Design Select 下拉框样式覆盖 ====================
+// 解决选中项背景太黑的问题 - 需要放在全局作用域因为下拉框是渲染在 body 下的
+:global {
+    .ant-select-dropdown {
+        // 选中项样式
+        .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+            background-color: #eef2ff !important;
+            color: #4338ca !important;
+            font-weight: 500 !important;
+        }
+
+        // 悬停激活项样式
+        .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+            background-color: #f1f5f9 !important;
+        }
+
+        // 普通选项样式
+        .ant-select-item-option {
+            color: #475569;
+
+            &:hover:not(.ant-select-item-option-disabled):not(.ant-select-item-option-selected) {
+                background-color: #f8fafc !important;
+            }
+        }
+    }
+}
+
+// ==================== 深色模式样式覆盖 ====================
+.llm-dark {
+    background-color: var(--llm-bg-primary);
+
+    // 侧边栏
+    .llm-gate-sidebar {
+        background: var(--llm-bg-sidebar);
+        border-color: var(--llm-border);
+
+        .sidebar-header {
+            .logo {
+                .logo-icon,
+                .logo-text {
+                    color: var(--llm-accent);
+                }
+            }
+        }
+
+        .sidebar-menu {
+            // 强制覆盖 antd Menu 背景
+            &.ant-menu {
+                background: transparent !important;
+            }
+
+            .ant-menu-item {
+                color: var(--llm-text-secondary) !important;
+                background: transparent !important;
+
+                &:hover {
+                    background-color: var(--llm-bg-hover) !important;
+                    color: var(--llm-text-primary) !important;
+                }
+
+                &.ant-menu-item-selected {
+                    background-color: var(--llm-bg-active) !important;
+                    color: var(--llm-accent-text) !important;
+                }
+            }
+        }
+
+        .sidebar-footer {
+            border-color: var(--llm-border);
+        }
+    }
+
+    // 主内容区
+    .llm-gate-main {
+        .main-header {
+            background: var(--llm-bg-secondary);
+            border-color: var(--llm-border);
+
+            .header-title {
+                color: var(--llm-text-primary);
+
+                .header-help-icon {
+                    color: var(--llm-text-muted);
+
+                    &:hover {
+                        color: var(--llm-accent);
+                    }
+                }
+            }
+
+            .header-actions {
+                .detector-btn {
+                    color: var(--llm-text-muted);
+
+                    &:hover {
+                        color: var(--llm-accent);
+                        background-color: var(--llm-bg-hover);
+                    }
+                }
+
+                .theme-toggle-btn {
+                    color: var(--llm-text-muted);
+
+                    &:hover {
+                        color: var(--llm-accent);
+                        background-color: var(--llm-bg-hover);
+                    }
+                }
+
+                .guide-tour-btn {
+                    color: var(--llm-accent);
+
+                    &:hover {
+                        color: var(--llm-accent-hover);
+                        background-color: var(--llm-bg-active);
+                    }
+                }
+
+                .notification-btn {
+                    color: var(--llm-text-muted);
+
+                    &:hover {
+                        color: var(--llm-accent);
+                    }
+                }
+
+                .divider {
+                    background-color: var(--llm-border);
+                }
+
+                .user-info {
+                    .user-details {
+                        .user-name {
+                            color: var(--llm-text-primary);
+                        }
+
+                        .user-role {
+                            color: var(--llm-text-muted);
+                        }
+                    }
+
+                    .user-avatar {
+                        background-color: var(--llm-avatar-bg);
+                        color: var(--llm-accent);
+                        border-color: var(--llm-border);
+                    }
+                }
+            }
+        }
+
+        .main-content {
+            background-color: var(--llm-bg-primary);
+        }
+    }
+
+    // 加载状态
+    &.llm-gate-loading,
+    .llm-gate-loading {
+        background: var(--llm-bg-primary);
+
+        .ant-spin-text {
+            color: var(--llm-text-muted);
+        }
+    }
+}

@@ -1,0 +1,28 @@
+# Web 框架
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+
+# 数据库（SQLAlchemy 异步直连 PostgreSQL）
+sqlalchemy[asyncio]>=2.0.0
+asyncpg>=0.29.0
+
+# Redis
+redis==6.1.1              # 异步 Redis 客户端
+
+# 安全
+python-jose[cryptography]>=3.3.0  # JWT Token
+cryptography>=42.0.0              # AES 加密
+passlib[bcrypt]>=1.7.4            # 密码哈希（bcrypt）
+
+# HTTP 客户端
+httpx>=0.26.0             # 异步 HTTP 客户端（用于代理转发请求）
+
+# 配置
+pydantic-settings>=2.1.0  # 配置管理
+
+# 验证
+email-validator>=2.0.0    # Pydantic EmailStr 类型验证
+
+# 工具
+python-multipart>=0.0.6   # 表单解析
+graypy>=2.1.0             # Graylog 日志（可选，默认关闭）

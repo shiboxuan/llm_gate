@@ -1,0 +1,924 @@
+/**
+ * 统计界面样式
+ * 文件位置：src/view/LLMGate/components/UsageStatistics/index.less
+ */
+
+.usage-statistics {
+    position: relative;
+    user-select: none;
+
+    // ==================== 下拉刷新指示器样式 ====================
+    .pull-refresh-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        transition: height 0.2s ease, opacity 0.2s ease;
+        background: linear-gradient(180deg, #f0f9ff 0%, transparent 100%);
+        margin: -32px -32px 0 -32px;
+        padding: 0 32px;
+
+        &.refreshing {
+            transition: none;
+        }
+
+        &.ready {
+            .pull-refresh-arrow {
+                color: #4f46e5;
+            }
+
+            .pull-refresh-text {
+                color: #4f46e5;
+                font-weight: 500;
+            }
+        }
+
+        .pull-refresh-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 0;
+        }
+
+        .pull-refresh-arrow {
+            font-size: 20px;
+            color: #94a3b8;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .pull-refresh-text {
+            font-size: 13px;
+            color: #64748b;
+            transition: color 0.2s ease;
+        }
+
+        .ant-spin {
+            .ant-spin-dot-item {
+                background-color: #4f46e5;
+            }
+        }
+    }
+
+    // 加载状态
+    .loading-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+    }
+
+    // 统计卡片区域
+    .stats-section {
+        margin-bottom: 30px;
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+
+            &::before {
+                content: '';
+                width: 4px;
+                height: 18px;
+                background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+                border-radius: 2px;
+                margin-right: 10px;
+            }
+        }
+
+        // 刷新按钮样式
+        .refresh-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            height: auto;
+            color: #4f46e5;
+            font-size: 13px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+
+            &:hover {
+                background-color: #eef2ff;
+                color: #4338ca;
+            }
+
+            .spinning {
+                animation: spin 1s linear infinite;
+            }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+    }
+
+    // 旋转动画
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .stat-card {
+        background-color: #fff;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+
+            &.icon-blue {
+                background-color: #eef2ff;
+                color: #4f46e5;
+            }
+
+            &.icon-green {
+                background-color: #ecfdf5;
+                color: #22c55e;
+            }
+
+            &.icon-red {
+                background-color: #fef2f2;
+                color: #ef4444;
+            }
+
+            &.icon-purple {
+                background-color: #faf5ff;
+                color: #a855f7;
+            }
+
+            &.icon-orange {
+                background-color: #fff7ed;
+                color: #f97316;
+            }
+
+            &.icon-cyan {
+                background-color: #ecfeff;
+                color: #06b6d4;
+            }
+        }
+
+        .stat-trend {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+
+            &.up {
+                background-color: #ecfdf5;
+                color: #22c55e;
+            }
+
+            &.down {
+                background-color: #fef2f2;
+                color: #ef4444;
+            }
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #64748b;
+        }
+    }
+
+    // 使用量区域通用样式
+    .usage-section {
+        background-color: #fff;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+        .usage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .usage-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-tab {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: #f1f5f9;
+            color: #64748b;
+
+            &.active {
+                background-color: #4f46e5;
+                color: #fff;
+            }
+
+            &:hover:not(.active) {
+                background-color: #e2e8f0;
+            }
+        }
+    }
+
+    // 工具使用量列表
+    .tool-usage-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .tool-usage-wrapper {
+        .tool-usage-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background-color: #f8fafc;
+            border-radius: 10px;
+            transition: all 0.2s;
+            cursor: pointer;
+
+            &:hover {
+                background-color: #f1f5f9;
+            }
+
+            .tool-icon {
+                width: 44px;
+                height: 44px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 15px;
+                font-size: 20px;
+                color: #fff;
+            }
+
+            .tool-info {
+                flex: 1;
+
+                .tool-name {
+                    font-size: 15px;
+                    font-weight: 600;
+                    color: #1e293b;
+                    margin-bottom: 4px;
+                }
+
+                .tool-routes {
+                    font-size: 13px;
+                    color: #64748b;
+                }
+            }
+
+            .tool-stats {
+                display: flex;
+                align-items: center;
+                gap: 30px;
+
+                .tool-stat {
+                    text-align: center;
+
+                    .tool-stat-value {
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #1e293b;
+                    }
+
+                    .tool-stat-label {
+                        font-size: 12px;
+                        color: #64748b;
+                    }
+                }
+            }
+
+            .usage-bar-container {
+                width: 200px;
+                margin-left: 20px;
+
+                .usage-bar-bg {
+                    height: 8px;
+                    background-color: #e2e8f0;
+                    border-radius: 4px;
+                    overflow: hidden;
+                }
+
+                .usage-bar {
+                    height: 100%;
+                    border-radius: 4px;
+                    transition: width 0.3s ease;
+
+                    &.claude {
+                        background: linear-gradient(90deg, #d4a574 0%, #c49660 100%);
+                    }
+
+                    &.openai {
+                        background: linear-gradient(90deg, #10a37f 0%, #0d8a6a 100%);
+                    }
+
+                    &.default {
+                        background: linear-gradient(90deg, #4f46e5 0%, #6366f1 100%);
+                    }
+                }
+
+                .usage-percentage {
+                    font-size: 12px;
+                    color: #64748b;
+                    margin-top: 4px;
+                    text-align: right;
+                }
+            }
+
+            .expand-icon {
+                margin-left: 16px;
+                font-size: 20px;
+                color: #94a3b8;
+                transition: color 0.2s;
+            }
+
+            &:hover .expand-icon {
+                color: #64748b;
+            }
+        }
+
+        .route-details {
+            margin-top: 15px;
+            padding-left: 20px;
+
+            .sub-route-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 16px;
+                background-color: #fff;
+                border-radius: 8px;
+                margin-bottom: 10px;
+                border: 1px solid #e2e8f0;
+                transition: all 0.2s;
+
+                &:hover {
+                    border-color: #cbd5e1;
+                    transform: translateX(3px);
+                }
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+
+                .sub-route-info {
+                    display: flex;
+                    align-items: center;
+                }
+
+                .sub-route-icon {
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 8px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-right: 12px;
+                    font-size: 14px;
+                    background-color: #f1f5f9;
+                    color: #64748b;
+
+                    &.active {
+                        background-color: #ecfdf5;
+                        color: #22c55e;
+                    }
+                }
+
+                .sub-route-name {
+                    font-size: 13px;
+                    font-weight: 500;
+                    color: #1e293b;
+
+                    .active-badge {
+                        font-size: 11px;
+                        padding: 3px 8px;
+                        border-radius: 4px;
+                        background-color: #22c55e;
+                        color: #fff;
+                        margin-left: 8px;
+                    }
+                }
+
+                .sub-route-model {
+                    font-size: 12px;
+                    color: #64748b;
+                }
+
+                .sub-route-count {
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: #4f46e5;
+                }
+            }
+        }
+    }
+
+    // 路由分类使用量网格
+    .route-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+
+        .route-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background-color: #f8fafc;
+            border-radius: 10px;
+            transition: all 0.2s;
+
+            &:hover {
+                background-color: #f1f5f9;
+                transform: translateX(3px);
+            }
+
+            .route-info {
+                display: flex;
+                align-items: center;
+            }
+
+            .route-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                margin-right: 12px;
+
+                &.messages {
+                    background-color: #4f46e5;
+                }
+
+                &.chat {
+                    background-color: #22c55e;
+                }
+
+                &.responses {
+                    background-color: #f97316;
+                }
+
+                &.embeddings {
+                    background-color: #06b6d4;
+                }
+            }
+
+            .route-name {
+                font-size: 14px;
+                font-weight: 500;
+                color: #1e293b;
+            }
+
+            .route-path {
+                font-size: 12px;
+                color: #64748b;
+                font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+            }
+
+            .route-count {
+                font-size: 18px;
+                font-weight: 600;
+                color: #1e293b;
+            }
+        }
+    }
+}
+
+// 响应式适配
+@media (max-width: 1200px) {
+    .usage-statistics {
+        .stats-section .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .route-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .usage-statistics {
+        .stats-section .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .tool-usage-wrapper .tool-usage-item {
+            flex-wrap: wrap;
+
+            .tool-stats {
+                width: 100%;
+                justify-content: flex-start;
+                margin-top: 12px;
+            }
+
+            .usage-bar-container {
+                width: 100%;
+                margin-left: 0;
+                margin-top: 12px;
+            }
+        }
+    }
+}
+
+// 环比 Tooltip 样式
+.trend-tooltip {
+    .ant-tooltip-inner {
+        background-color: #fff;
+        color: #1e293b;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        border-radius: 10px;
+        padding: 0;
+    }
+
+    .ant-tooltip-arrow-content {
+        background-color: #fff;
+    }
+}
+
+.trend-tooltip-content {
+    padding: 12px 16px;
+    min-width: 180px;
+
+    .tooltip-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid #f1f5f9;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        &.tooltip-change {
+            margin-top: 4px;
+            padding-top: 10px;
+            border-top: 1px dashed #e2e8f0;
+            border-bottom: none;
+        }
+    }
+
+    .tooltip-label {
+        font-size: 13px;
+        color: #64748b;
+    }
+
+    .tooltip-value {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1e293b;
+
+        &.up {
+            color: #22c55e;
+        }
+
+        &.down {
+            color: #ef4444;
+        }
+    }
+}
+
+// ==================== 深色模式 ====================
+.llm-dark {
+    // RecentRecords 组件深色适配（CSS Modules 组件需要用全局选择器）
+    [class*='recentRecords'] {
+        background-color: var(--llm-card-bg) !important;
+        box-shadow: none !important;
+
+        [class*='header'] {
+            [class*='title'] {
+                color: var(--llm-text-primary) !important;
+
+                > svg {
+                    color: var(--llm-accent) !important;
+                }
+            }
+
+            [class*='totalCount'] {
+                color: var(--llm-text-disabled) !important;
+            }
+        }
+
+        [class*='limitTab'] {
+            background-color: var(--llm-bg-hover) !important;
+            color: var(--llm-text-muted) !important;
+
+            &:hover {
+                background-color: var(--llm-border) !important;
+            }
+        }
+
+        [class*='limitTab'][class*='active'] {
+            background-color: var(--llm-accent) !important;
+            color: #fff !important;
+        }
+
+        [class*='recordItem'] {
+            background-color: var(--llm-bg-secondary) !important;
+
+            &:hover {
+                background-color: var(--llm-bg-hover) !important;
+            }
+        }
+
+        [class*='modelName'] {
+            color: var(--llm-text-primary) !important;
+        }
+
+        [class*='toolName'],
+        [class*='recordMeta'] {
+            color: var(--llm-text-muted) !important;
+        }
+
+        [class*='separator'] {
+            color: var(--llm-border) !important;
+        }
+
+        [class*='routeName'] {
+            color: var(--llm-text-disabled) !important;
+        }
+
+        [class*='tokenCount'] {
+            background-color: var(--llm-bg-active) !important;
+
+            > svg,
+            > span {
+                color: var(--llm-accent) !important;
+            }
+        }
+
+        [class*='timeDate'] {
+            color: var(--llm-text-disabled) !important;
+        }
+
+        [class*='timeValue'] {
+            color: var(--llm-text-muted) !important;
+        }
+
+        [class*='errorMessage'] {
+            background-color: rgba(239, 68, 68, 0.15) !important;
+        }
+
+        [class*='debugBadge'] {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(253, 230, 138, 0.2) 100%) !important;
+            border-color: rgba(245, 158, 11, 0.5) !important;
+            color: #fbbf24 !important;
+        }
+
+        [class*='costBadge'] {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(187, 247, 208, 0.2) 100%) !important;
+            color: #4ade80 !important;
+        }
+    }
+
+    .usage-statistics {
+        // 下拉刷新指示器
+        .pull-refresh-indicator {
+            background: linear-gradient(180deg, rgba(30, 58, 138, 0.2) 0%, transparent 100%);
+        }
+
+        // 统计卡片区域
+        .stats-section {
+            .section-title {
+                color: var(--llm-text-primary);
+            }
+
+            .refresh-btn {
+                color: var(--llm-accent);
+
+                &:hover {
+                    background-color: var(--llm-bg-active);
+                    color: var(--llm-accent-hover);
+                }
+            }
+        }
+
+        .stat-card {
+            background-color: var(--llm-card-bg);
+
+            &:hover {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+
+            .stat-value {
+                color: var(--llm-text-primary);
+            }
+
+            .stat-label {
+                color: var(--llm-text-muted);
+            }
+
+            .stat-icon {
+                &.icon-blue {
+                    background-color: rgba(79, 70, 229, 0.15);
+                }
+
+                &.icon-green {
+                    background-color: rgba(34, 197, 94, 0.15);
+                }
+
+                &.icon-red {
+                    background-color: rgba(239, 68, 68, 0.15);
+                }
+
+                &.icon-purple {
+                    background-color: rgba(168, 85, 247, 0.15);
+                }
+
+                &.icon-orange {
+                    background-color: rgba(249, 115, 22, 0.15);
+                }
+
+                &.icon-cyan {
+                    background-color: rgba(6, 182, 212, 0.15);
+                }
+            }
+        }
+
+        // 使用量区域
+        .usage-section {
+            background-color: var(--llm-card-bg);
+
+            .usage-title {
+                color: var(--llm-text-primary);
+            }
+
+            .filter-tab {
+                background-color: var(--llm-bg-hover);
+                color: var(--llm-text-muted);
+
+                &.active {
+                    background-color: var(--llm-accent);
+                    color: #fff;
+                }
+
+                &:hover:not(.active) {
+                    background-color: var(--llm-border);
+                }
+            }
+        }
+
+        // 工具使用量列表
+        .tool-usage-wrapper {
+            .tool-usage-item {
+                background-color: var(--llm-bg-secondary);
+
+                &:hover {
+                    background-color: var(--llm-bg-hover);
+                }
+
+                .tool-info {
+                    .tool-name {
+                        color: var(--llm-text-primary);
+                    }
+
+                    .tool-routes {
+                        color: var(--llm-text-muted);
+                    }
+                }
+
+                .tool-stats {
+                    .tool-stat {
+                        .tool-stat-value {
+                            color: var(--llm-text-primary);
+                        }
+
+                        .tool-stat-label {
+                            color: var(--llm-text-muted);
+                        }
+                    }
+                }
+
+                .usage-bar-container {
+                    .usage-bar-bg {
+                        background-color: var(--llm-border);
+                    }
+
+                    .usage-percentage {
+                        color: var(--llm-text-muted);
+                    }
+                }
+
+                .expand-icon {
+                    color: var(--llm-text-disabled);
+                }
+
+                &:hover .expand-icon {
+                    color: var(--llm-text-muted);
+                }
+            }
+
+            .route-details {
+                .sub-route-item {
+                    background-color: var(--llm-card-bg);
+                    border-color: var(--llm-border);
+
+                    &:hover {
+                        border-color: var(--llm-text-muted);
+                    }
+
+                    .sub-route-icon {
+                        background-color: var(--llm-bg-hover);
+                        color: var(--llm-text-muted);
+
+                        &.active {
+                            background-color: rgba(34, 197, 94, 0.15);
+                            color: #22c55e;
+                        }
+                    }
+
+                    .sub-route-name {
+                        color: var(--llm-text-primary);
+                    }
+
+                    .sub-route-model {
+                        color: var(--llm-text-muted);
+                    }
+
+                    .sub-route-count {
+                        color: var(--llm-accent);
+                    }
+                }
+            }
+        }
+
+        // 路由分类网格
+        .route-grid {
+            .route-item {
+                background-color: var(--llm-bg-secondary);
+
+                &:hover {
+                    background-color: var(--llm-bg-hover);
+                }
+
+                .route-name {
+                    color: var(--llm-text-primary);
+                }
+
+                .route-path {
+                    color: var(--llm-text-muted);
+                }
+
+                .route-count {
+                    color: var(--llm-text-primary);
+                }
+            }
+        }
+    }
+}

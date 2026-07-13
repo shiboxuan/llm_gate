@@ -1,0 +1,426 @@
+/**
+ * LLM Gate 新手引导样式
+ * 重构版本 - 白色主题，优化蒙版透明度
+ */
+
+// 引导步骤标题
+.tour-step-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+
+    .tour-title-icon {
+        font-size: 20px;
+        color: #6366f1;
+    }
+}
+
+// 引导步骤内容
+.tour-step-content {
+    color: #475569;
+    font-size: 14px;
+    line-height: 1.6;
+
+    p {
+        margin: 0 0 12px 0;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    strong {
+        color: #1e293b;
+        font-weight: 600;
+    }
+}
+
+// 功能列表
+.feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0;
+
+    li {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 8px;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        .check-icon {
+            color: #22c55e;
+            font-size: 16px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+    }
+}
+
+// API 地址复制框 - 白色主题
+.api-url-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 16px 0;
+
+    .api-url-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6366f1;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+
+        svg {
+            font-size: 14px;
+        }
+    }
+
+    .api-url-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin-bottom: 8px;
+    }
+
+    .api-url-text {
+        flex: 1;
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+        font-size: 13px;
+        color: #1e293b;
+        font-weight: 500;
+        word-break: break-all;
+    }
+
+    .api-url-hint {
+        font-size: 12px;
+        color: #64748b;
+        margin: 0;
+    }
+}
+
+// 信息提示框
+.info-box {
+    display: flex;
+    gap: 10px;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 12px 0;
+
+    .info-icon {
+        font-size: 18px;
+        color: #0ea5e9;
+        flex-shrink: 0;
+        margin-top: 2px;
+
+        &.warning {
+            color: #f59e0b;
+        }
+    }
+
+    p {
+        margin: 0 0 6px 0;
+        font-size: 13px;
+        color: #0c4a6e;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+}
+
+// 示例框
+.example-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 12px 0;
+
+    .example-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+        margin: 0 0 8px 0;
+    }
+
+    .example-code {
+        display: block;
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+        font-size: 12px;
+        color: #334155;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 10px 12px;
+        line-height: 1.8;
+    }
+}
+
+// 步骤框
+.steps-box {
+    background: #fefce8;
+    border: 1px solid #fde047;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 12px 0;
+
+    .steps-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #854d0e;
+        margin: 0 0 8px 0;
+    }
+
+    .steps-list {
+        margin: 0;
+        padding-left: 20px;
+        color: #713f12;
+        font-size: 13px;
+
+        li {
+            margin-bottom: 6px;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
+// 总结框
+.summary-box {
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 12px 0;
+
+    .summary-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #166534;
+        margin: 0 0 8px 0;
+    }
+
+    .summary-list {
+        margin: 0;
+        padding-left: 20px;
+        color: #15803d;
+        font-size: 13px;
+
+        li {
+            margin-bottom: 6px;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
+// 最后提示
+.final-hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 12px;
+
+    svg {
+        font-size: 14px;
+        color: #94a3b8;
+    }
+}
+
+// Tour 指示器
+.tour-indicators {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+// 覆盖 Ant Design Tour 样式 - 白色主题
+:global {
+    // 遮罩层样式 - 使用半透明深色，便于聚焦但不完全遮挡
+    .ant-tour-mask {
+        // 使用较低透明度的深色蒙版
+        fill: rgba(0, 0, 0, 0.45) !important;
+    }
+
+    // Tour 主容器
+    .ant-tour {
+        // 内部容器 - 强制白色背景
+        .ant-tour-inner {
+            max-width: 420px;
+            border-radius: 16px;
+            // 增强阴影效果，使弹窗更加突出
+            box-shadow:
+                0 25px 50px rgba(0, 0, 0, 0.2),
+                0 10px 20px rgba(0, 0, 0, 0.15),
+                0 0 0 1px rgba(99, 102, 241, 0.15) !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+
+        // 内容区域
+        .ant-tour-content {
+            padding: 20px !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            color: #1e293b !important;
+        }
+
+        // 标题区域
+        .ant-tour-header {
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            padding: 0 !important;
+            margin-bottom: 12px !important;
+        }
+
+        .ant-tour-title {
+            padding-bottom: 12px !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            margin-bottom: 0 !important;
+            color: #1e293b !important;
+            background: transparent !important;
+        }
+
+        // 描述区域
+        .ant-tour-description {
+            color: #475569 !important;
+            background: transparent !important;
+        }
+
+        // 底部区域
+        .ant-tour-footer {
+            margin-top: 16px !important;
+            padding-top: 16px !important;
+            border-top: 1px solid #f1f5f9 !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+        }
+
+        // 按钮样式
+        .ant-tour-buttons {
+            gap: 8px;
+
+            .ant-btn-primary {
+                background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+                border: none !important;
+                border-radius: 8px !important;
+                font-weight: 500 !important;
+                height: 36px !important;
+                padding: 0 20px !important;
+                color: #ffffff !important;
+
+                &:hover {
+                    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
+                }
+            }
+
+            .ant-btn-default {
+                border-radius: 8px !important;
+                height: 36px !important;
+                padding: 0 16px !important;
+                background: #ffffff !important;
+                border-color: #d1d5db !important;
+                color: #374151 !important;
+
+                &:hover {
+                    border-color: #6366f1 !important;
+                    color: #6366f1 !important;
+                }
+            }
+        }
+
+        .ant-tour-indicators {
+            margin: 0 8px;
+
+            .ant-tour-indicator {
+                background: #d1d5db !important;
+
+                &-active {
+                    background: #6366f1 !important;
+                }
+            }
+        }
+
+        // 关闭按钮样式
+        .ant-tour-close {
+            top: 16px !important;
+            right: 16px !important;
+            width: 28px !important;
+            height: 28px !important;
+            border-radius: 8px !important;
+            color: #64748b !important;
+            background: transparent !important;
+
+            &:hover {
+                background: #f1f5f9 !important;
+                color: #1e293b !important;
+            }
+        }
+
+        // 箭头样式 - 白色
+        .ant-tour-arrow {
+            &::before {
+                background: #ffffff !important;
+                border: 1px solid #e2e8f0 !important;
+            }
+
+            &::after {
+                background: #ffffff !important;
+            }
+        }
+
+        // Primary 类型的特殊样式覆盖
+        &.ant-tour-primary {
+            .ant-tour-inner {
+                background: #ffffff !important;
+                background-color: #ffffff !important;
+            }
+
+            .ant-tour-content {
+                background: #ffffff !important;
+                background-color: #ffffff !important;
+            }
+
+            .ant-tour-arrow {
+                &::before {
+                    background: #ffffff !important;
+                }
+            }
+        }
+    }
+
+    // 确保所有 Tour 相关元素使用白色背景
+    [class*='ant-tour'] {
+        &[class*='inner'],
+        &[class*='content'],
+        &[class*='header'],
+        &[class*='footer'] {
+            background-color: #ffffff !important;
+        }
+    }
+}
