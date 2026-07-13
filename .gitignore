@@ -1,4 +1,6 @@
 .env
+.env.*
+!.env.example
 .idea
 scripts/llm_gate_env.json
 __pycache__/
