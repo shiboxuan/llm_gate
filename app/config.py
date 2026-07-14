@@ -43,6 +43,11 @@ class Settings(BaseSettings):
     app_env: str = "production"  # development | production
     debug: bool = False
 
+    # 应用监听地址/端口（本地开发默认 0.0.0.0:9981 直连；容器内由 Dockerfile ENV 覆盖为
+    # 127.0.0.1:8000，仅容器内可达，由 nginx 反代到对外端口 9000/9981）
+    app_host: str = "0.0.0.0"
+    app_port: int = 9981
+
     # Graylog 配置（可选，默认关闭）
     graylog_enabled: bool = False
     graylog_host: str = "localhost"
