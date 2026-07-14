@@ -9,11 +9,11 @@ import type {TourProps} from 'antd';
 import {Icon} from '@iconify/react';
 import {CopyOutlined, CheckOutlined} from '@ant-design/icons';
 import {copyToClipboard} from '@/utils/copyToClipboard';
-import {llmGateHost} from '@/utils/variable';
+import {RUNTIME_CONFIG} from '@/config/runtime';
 import './index.less';
 
-// Backend API base URL, derived from the configured host
-const API_BASE_URL = `${llmGateHost.replace(/\/$/, '')}/v1`;
+// Backend API base URL, 由后端运行时配置注入（仅用于新手引导展示）
+const API_BASE_URL = RUNTIME_CONFIG.apiBaseUrl;
 
 // localStorage key
 const GUIDE_COMPLETED_KEY = 'llm_gate_guide_completed';

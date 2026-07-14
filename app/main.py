@@ -3,12 +3,13 @@ LLM Gate 应用入口
 
 配置 FastAPI 应用，注册中间件、路由、异常处理器，并托管前端静态资源（单镜像部署）。
 """
+import json
 import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.control_plane.router import control_plane_router
@@ -24,6 +25,37 @@ settings = get_settings()
 
 # 前端静态资源目录（单镜像部署时由 Dockerfile 将前端构建产物拷贝到 ./static）
 STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static")
+
+
+# index.html 模板缓存（进程内只读一次），用于向前端注入运行时配置
+_INDEX_HTML_TEMPLATE: str | None = None
+
+
+def _render_index_html(template: str, api_base_url: str) -> str:
+    """将运行时配置注入 index.html 模板。
+
+    把占位符 __LLM_GATE_RUNTIME_CONFIG__ 替换为 JSON（{"apiBaseUrl": ...}），
+    供前端新手引导弹窗展示「后端 API 地址」。该值仅用于展示，不影响实际请求路由。
+    将 `<` 转义为 \\u003c，防止值中潜在的 </script> 破坏 script 标签。
+    """
+    runtime_json = json.dumps({"apiBaseUrl": api_base_url}).replace("<", "\\u003c")
+    return template.replace("__LLM_GATE_RUNTIME_CONFIG__", runtime_json, 1)
+
+
+def _get_index_html() -> str | None:
+    """读取并缓存 index.html 模板，返回注入运行时配置后的完整 HTML。
+
+    模板在进程内只读一次；每次调用用当前 settings.public_api_base_url 重新渲染。
+    无 index.html（如开发模式未构建前端）时返回 None。
+    """
+    global _INDEX_HTML_TEMPLATE
+    if _INDEX_HTML_TEMPLATE is None:
+        index_path = os.path.join(STATIC_DIR, "index.html")
+        if not os.path.isfile(index_path):
+            return None
+        with open(index_path, "r", encoding="utf-8") as f:
+            _INDEX_HTML_TEMPLATE = f.read()
+    return _render_index_html(_INDEX_HTML_TEMPLATE, settings.public_api_base_url)
 
 
 # ==================== 生命周期管理 ====================
@@ -118,10 +150,10 @@ if os.path.isdir(STATIC_DIR):
         target = os.path.join(STATIC_DIR, full_path)
         if full_path and os.path.isfile(target):
             return FileResponse(target)
-        # 其余路径返回 index.html（SPA 客户端路由）
-        index_path = os.path.join(STATIC_DIR, "index.html")
-        if os.path.isfile(index_path):
-            return FileResponse(index_path)
+        # 其余路径返回 index.html（SPA 客户端路由），并注入运行时配置
+        index_html = _get_index_html()
+        if index_html is not None:
+            return HTMLResponse(index_html)
         raise HTTPException(status_code=404, detail="Not Found")
 else:
     @app.get("/", tags=["Health"])

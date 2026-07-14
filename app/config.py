@@ -81,6 +81,13 @@ class Settings(BaseSettings):
     proxy_timeout_read_stream: float = 600.0      # 流式读取超时（10分钟）
     proxy_timeout_read_non_stream: float = 1800.0  # 非流式读取超时（30分钟）
 
+    # 对外暴露的 API 基地址（含 /v1 路径），仅用于前端「新手引导」弹窗展示给用户复制的 API Endpoint。
+    # ⚠️ 不影响实际请求路由（前端实际请求始终走同源相对路径），纯展示用途。
+    # 留空（默认）时，前端自动用浏览器访问地址推导（window.location.origin + '/v1'），
+    # 容器化部署无需配置即可正确展示对外地址。
+    # 如需展示固定地址（如规范域名 https://gate.example.com/v1），在此配置覆盖。
+    public_api_base_url: str = ""
+
 
 @lru_cache()
 def get_settings() -> Settings:
