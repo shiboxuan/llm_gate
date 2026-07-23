@@ -9,6 +9,7 @@ from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm.attributes import flag_modified
 
 from app.config import get_current_time
 from app.db.orm import ToolORM
@@ -63,6 +64,10 @@ class RouteService:
 
         # 5. 更新数据库（routes 传 dict，JSONB 列自动处理）
         orm.routes = routes
+        # routes 是 JSONB 列：_parse_routes 对 dict 返回同一对象引用，
+        # 直接赋值回 orm.routes 会被 SQLAlchemy 判定为 no-net-change 不写库，
+        # 必须显式 flag_modified 标记 dirty，否则新增/修改/删除的路由不会持久化。
+        flag_modified(orm, "routes")
         orm.updated_at = get_current_time()
         await self.session.commit()
         await self.session.refresh(orm)
@@ -101,6 +106,10 @@ class RouteService:
 
         # 5. 更新数据库
         orm.routes = routes
+        # routes 是 JSONB 列：_parse_routes 对 dict 返回同一对象引用，
+        # 直接赋值回 orm.routes 会被 SQLAlchemy 判定为 no-net-change 不写库，
+        # 必须显式 flag_modified 标记 dirty，否则新增/修改/删除的路由不会持久化。
+        flag_modified(orm, "routes")
         orm.updated_at = get_current_time()
         await self.session.commit()
         await self.session.refresh(orm)
@@ -142,6 +151,10 @@ class RouteService:
 
         # 6. 更新数据库
         orm.routes = routes
+        # routes 是 JSONB 列：_parse_routes 对 dict 返回同一对象引用，
+        # 直接赋值回 orm.routes 会被 SQLAlchemy 判定为 no-net-change 不写库，
+        # 必须显式 flag_modified 标记 dirty，否则新增/修改/删除的路由不会持久化。
+        flag_modified(orm, "routes")
         orm.updated_at = get_current_time()
         await self.session.commit()
         await self.session.refresh(orm)
@@ -211,6 +224,10 @@ class RouteService:
 
         # 4. 更新数据库
         orm.routes = routes
+        # routes 是 JSONB 列：_parse_routes 对 dict 返回同一对象引用，
+        # 直接赋值回 orm.routes 会被 SQLAlchemy 判定为 no-net-change 不写库，
+        # 必须显式 flag_modified 标记 dirty，否则新增/修改/删除的路由不会持久化。
+        flag_modified(orm, "routes")
         orm.updated_at = get_current_time()
         await self.session.commit()
         await self.session.refresh(orm)
