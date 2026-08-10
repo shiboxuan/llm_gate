@@ -44,7 +44,7 @@ async def test_connection(request: ConnectionTestRequest, current_user=Depends(g
     result = await connection_test_service.test_connection(api_type=request.api_type, base_url=request.base_url, model=request.model, api_key=api_key)
 
     # 3. 构建响应
-    response = ConnectionTestResponse(success=result.success, message=result.message, latency_ms=result.latency_ms, error_code=result.error_code, details=result.details)
+    response = ConnectionTestResponse(success=result.success, message=result.message, latency_ms=result.latency_ms, error_code=result.error_code, details=result.details, attempted_urls=result.attempted_urls)
     return response
 
 

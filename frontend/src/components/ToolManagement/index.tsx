@@ -61,7 +61,7 @@ const ToolManagement: React.FC<ToolManagementProps> = ({addToolBtnRef}) => {
 
     // 测试连通性状态
     const [testConnectionStatus, setTestConnectionStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-    const [testConnectionResult, setTestConnectionResult] = useState<{latency?: number; message?: string}>({});
+    const [testConnectionResult, setTestConnectionResult] = useState<{latency?: number; message?: string; attemptedUrls?: string[]}>({});
 
     // Provider Keys 缓存状态
     const [providerKeys, setProviderKeys] = useState<ApiProviderKey[]>([]);
@@ -347,7 +347,7 @@ const ToolManagement: React.FC<ToolManagementProps> = ({addToolBtnRef}) => {
                 setTestConnectionResult({latency: response.data.latency_ms});
             } else {
                 setTestConnectionStatus('error');
-                setTestConnectionResult({message: response.data.message});
+                setTestConnectionResult({message: response.data.message, attemptedUrls: response.data.attempted_urls});
             }
         } catch (error: any) {
             setTestConnectionStatus('error');
@@ -822,14 +822,28 @@ const ToolManagement: React.FC<ToolManagementProps> = ({addToolBtnRef}) => {
         const config = statusConfig[testConnectionStatus];
 
         return (
-            <Button
-                onClick={handleTestConnection}
-                disabled={testConnectionStatus === 'loading'}
-                icon={config.icon}
-                className={config.className}
-            >
-                {config.text}
-            </Button>
+            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4}}>
+                <Button
+                    onClick={handleTestConnection}
+                    disabled={testConnectionStatus === 'loading'}
+                    icon={config.icon}
+                    className={config.className}
+                >
+                    {config.text}
+                </Button>
+                {testConnectionStatus === 'error' && testConnectionResult.message && (
+                    <div className='test-connection-tip'>
+                        {testConnectionResult.message}
+                        {testConnectionResult.attemptedUrls && testConnectionResult.attemptedUrls.length > 0 && (
+                            <div className='test-connection-tip-urls'>
+                                {testConnectionResult.attemptedUrls.map((u, i) => (
+                                    <div key={i}>尝试 {i + 1}: {u}</div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
         );
     };
 

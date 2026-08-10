@@ -225,6 +225,7 @@ export interface ConnectionTestResponse {
     latency_ms?: number;
     error_code?: string;
     details?: string;
+    attempted_urls?: string[];
 }
 
 // ==================== Provider Key API 类型 ====================

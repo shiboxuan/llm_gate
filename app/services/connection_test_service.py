@@ -28,6 +28,7 @@ class ConnectionTestResult:
     latency_ms: int = 0
     error_code: str = None
     details: str = None
+    attempted_urls: list = None
 
 
 @dataclass
@@ -104,8 +105,48 @@ class ConnectionTestService:
 
     async def _test_anthropic_messages(self, base_url: str, model: str, api_key: str) -> ConnectionTestResult:
         """测试 Anthropic Messages API"""
+        # 先按用户填写的 base_url 原样测试（与数据面转发逻辑一致，不静默补 /v1）
         url = self._build_url(base_url, "/messages")
+        headers, payload = self._anthropic_headers_and_payload(base_url, model, api_key)
+        result = await self._send_test_request(url, headers, payload)
+        if result.success:
+            return result
 
+        # 失败时额外尝试 Anthropic SDK 约定的 /v1 路径（仅用于诊断提示，不替代用户配置）
+        if url.endswith("/v1/messages"):
+            return result
+        fallback_url = url[:-len("/messages")] + "/v1/messages"
+        fallback_result = await self._send_test_request(fallback_url, headers, payload)
+        attempted_urls = [url, fallback_url]
+
+        if fallback_result.success:
+            suggested_base = fallback_url[:-len("/messages")]
+            return ConnectionTestResult(
+                success=False,
+                message=(
+                    f"当前 base_url 无法直接连通，但添加 /v1 后缀后连接成功。\n"
+                    f"请将 base_url 修改为：{suggested_base}\n"
+                    f"（已尝试：{url} → 失败）"
+                ),
+                latency_ms=fallback_result.latency_ms,
+                error_code="NEED_V1_SUFFIX",
+                attempted_urls=attempted_urls,
+            )
+
+        return ConnectionTestResult(
+            success=False,
+            message=(
+                f"所有尝试均失败，请检查 base_url、API Key 或网络：\n"
+                f"1. {url} → {result.message}\n"
+                f"2. {fallback_url} → {fallback_result.message}"
+            ),
+            latency_ms=max(result.latency_ms, fallback_result.latency_ms),
+            error_code=result.error_code or fallback_result.error_code,
+            attempted_urls=attempted_urls,
+        )
+
+    def _anthropic_headers_and_payload(self, base_url: str, model: str, api_key: str) -> Tuple[Dict[str, str], Dict[str, Any]]:
+        """构建 Anthropic Messages 测试请求的 headers 与 payload"""
         # 判断是否使用 Bearer 认证（基于配置标记，兼容自建 Bearer 代理）
         settings = get_settings()
         is_bearer_proxy = any(marker in base_url for marker in settings.anthropic_bearer_auth_markers)
@@ -118,8 +159,7 @@ class ConnectionTestService:
             headers = {"x-api-key": api_key, "anthropic-version": "2023-06-01", "Content-Type": "application/json"}
 
         payload = {"model": model, "messages": [{"role": "user", "content": "请只回复一个数字 1"}], "max_tokens": 10}
-
-        return await self._send_test_request(url, headers, payload)
+        return headers, payload
 
     async def _test_gemini_generate(self, base_url: str, model: str, api_key: str) -> ConnectionTestResult:
         """测试 Google Gemini generateContent API"""

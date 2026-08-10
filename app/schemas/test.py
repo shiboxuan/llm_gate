@@ -23,6 +23,7 @@ class ConnectionTestResponse(BaseModel):
     latency_ms: Optional[int] = Field(None, description="响应耗时（毫秒）")
     error_code: Optional[str] = Field(None, description="错误码（失败时）")
     details: Optional[str] = Field(None, description="详细错误信息（失败时）")
+    attempted_urls: Optional[List[str]] = Field(None, description="已尝试的请求 URL 列表（失败诊断时返回）")
 
 
 # ==================== 模型探测 Schema ====================
