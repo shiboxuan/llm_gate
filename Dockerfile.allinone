@@ -1,0 +1,80 @@
+# ============================================================
+# LLM Gate 一体化镜像（应用 + PostgreSQL + Redis 打进同一个镜像）
+#
+# 与根目录 Dockerfile 完全独立，不影响原 docker build 逻辑。
+#
+# 构建：
+#   docker build -f Dockerfile.allinone -t llm-gate-allinone:latest .
+#
+# 运行（数据持久化到宿主机，路径用参数传入）：
+#   docker run -d --name llm-gate-allinone \
+#     -p 9000:9000 -p 9981:9981 \
+#     -v /宿主机/持久化目录/pg:/var/lib/postgresql/data \
+#     -v /宿主机/持久化目录/redis:/var/lib/redis \
+#     llm-gate-allinone:latest
+#
+#   # 如需自定义容器内数据目录（挂载点随之变化）：
+#   -e LLM_GATE_PG_DATA=/data/pg -v /宿主机/pg:/data/pg
+#   -e LLM_GATE_REDIS_DATA=/data/redis -v /宿主机/redis:/data/redis
+# ============================================================
+
+# -------------------- Stage 1: 前端构建 --------------------
+FROM node:18-alpine AS frontend-builder
+WORKDIR /build
+# 先拷贝依赖清单，利用层缓存（.dockerignore 已排除本地 node_modules/build）
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
+# -------------------- Stage 2: 运行时（含中间件） --------------------
+FROM python:3.11-slim
+WORKDIR /app
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 安装 nginx + PostgreSQL + Redis（服务端都在镜像内）
+# 先切换国内 apt 源（阿里云；若你的网络可直连 deb.debian.org，可删除此 sed 行）
+RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources 2>/dev/null \
+    || sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends nginx postgresql redis-server \
+    && rm -rf /var/lib/apt/lists/* \
+    # 删除 apt 安装时自动创建的默认 PG 集群，避免与自定义数据目录/端口冲突
+    && (for c in $(pg_lsclusters -h 2>/dev/null | awk '{print $2"/"$1}'); do pg_dropcluster --stop "$c" || true; done) \
+    # 停止 apt 安装时可能自动拉起的 redis，由入口脚本统一管理
+    && (redis-cli shutdown nosave 2>/dev/null || true)
+
+# 后端依赖
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 后端代码
+COPY app/ ./app/
+COPY run.py ./
+
+# 生产配置（一体化模式：DB/Redis 均在本容器 localhost，保持默认即可）
+COPY .env.production ./.env
+
+# 前端构建产物（FastAPI 静态托管）
+COPY --from=frontend-builder /build/build ./static
+
+# nginx 配置与一体化入口
+COPY deploy/nginx.conf /etc/nginx/nginx.conf
+COPY deploy/allinone-entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# uvicorn 退到容器内部 127.0.0.1:8000，由 nginx 反代到对外 9000/9981
+ENV LLM_GATE_APP_ENV=production
+ENV LLM_GATE_APP_HOST=127.0.0.1
+ENV LLM_GATE_APP_PORT=8000
+ENV PYTHONUNBUFFERED=1
+
+# 数据目录（容器内挂载点；可用 -e 覆盖，宿主机持久化用 -v 挂载）
+ENV LLM_GATE_PG_DATA=/var/lib/postgresql/data
+ENV LLM_GATE_REDIS_DATA=/var/lib/redis
+
+EXPOSE 9000 9981
+
+# 启动：PostgreSQL + Redis + uvicorn + nginx
+CMD ["/entrypoint.sh"]

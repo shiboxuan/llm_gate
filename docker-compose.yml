@@ -1,0 +1,66 @@
+# ============================================================
+# LLM Gate 多容器编排：应用(原 Dockerfile) + PostgreSQL + Redis
+#
+# 数据持久化到宿主机，路径在启动时用环境变量传入（未传则用 ./data 下的默认相对路径）：
+#   LLM_GATE_PG_DATA_HOST=/data/pg \
+#   LLM_GATE_REDIS_DATA_HOST=/data/redis \
+#   docker compose up -d --build
+#
+# 常用变量（均可选，有默认值）：
+#   LLM_GATE_PG_DATA_HOST     宿主机 PostgreSQL 持久化目录（默认 ./data/postgres）
+#   LLM_GATE_REDIS_DATA_HOST  宿主机 Redis 持久化目录（默认 ./data/redis）
+#   LLM_GATE_DB_USER / LLM_GATE_DB_PASSWORD / LLM_GATE_DB_NAME  数据库账号（默认 llm_gate / llm_gate / llm_gate）
+#   LLM_GATE_PUBLIC_API_BASE_URL  对外 API 基地址（默认 http://localhost:9981/v1）
+# ============================================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${LLM_GATE_DB_USER:-llm_gate}
+      POSTGRES_PASSWORD: ${LLM_GATE_DB_PASSWORD:-llm_gate}
+      POSTGRES_DB: ${LLM_GATE_DB_NAME:-llm_gate}
+    volumes:
+      # 宿主机数据目录 -> 容器 /var/lib/postgresql/data（绑定挂载 = 持久化）
+      - ${LLM_GATE_PG_DATA_HOST:-./data/postgres}:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${LLM_GATE_DB_USER:-llm_gate} -d ${LLM_GATE_DB_NAME:-llm_gate}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # 开启 AOF 持久化，配合 /data 挂载实现数据落盘
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - ${LLM_GATE_REDIS_DATA_HOST:-./data/redis}:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  app:
+    # 用「原 Dockerfile」构建，不引入任何中间件；中间件由上面两个服务提供
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: llm-gate:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # 覆盖镜像内置 .env.production（pydantic-settings 优先级：环境变量 > .env 文件）
+      LLM_GATE_DATABASE_URL: postgresql+asyncpg://${LLM_GATE_DB_USER:-llm_gate}:${LLM_GATE_DB_PASSWORD:-llm_gate}@postgres:5432/${LLM_GATE_DB_NAME:-llm_gate}
+      LLM_GATE_REDIS_URL: redis://redis:6379/0
+      LLM_GATE_PUBLIC_API_BASE_URL: ${LLM_GATE_PUBLIC_API_BASE_URL:-http://localhost:9981/v1}
+    ports:
+      - "9000:9000"   # 管理网页 + 控制面
+      - "9981:9981"   # 路由服务（/v1）

@@ -6,6 +6,8 @@ scripts/llm_gate_env.json
 __pycache__/
 DockerfileDebug
 .claude/
+.reasonix/
+.workbuddy/
 scratch/
 *.scratch.py
 .DS_Store
@@ -13,3 +15,6 @@ docs/sanitization-report.md
 
 # 前端构建产物托管目录（本地开发用软链接指向 frontend/build，镜像部署时由 Dockerfile 生成）
 /static
+
+# docker-compose 默认的宿主机数据持久化目录（LLM_GATE_PG_DATA_HOST / LLM_GATE_REDIS_DATA_HOST 未指定时的默认值）
+/data
