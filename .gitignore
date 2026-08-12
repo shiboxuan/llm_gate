@@ -18,3 +18,4 @@ docs/sanitization-report.md
 
 # docker-compose 默认的宿主机数据持久化目录（LLM_GATE_PG_DATA_HOST / LLM_GATE_REDIS_DATA_HOST 未指定时的默认值）
 /data
+llm_gate.egg-info/
