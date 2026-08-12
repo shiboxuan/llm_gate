@@ -1011,6 +1011,22 @@ async def _forward_anthropic_native(request: Request, body: Dict[str, Any], conf
     2. 官方 Anthropic API 或其他服务：使用 x-api-key 格式 + anthropic-version 头
     """
     logger.info(f"[Anthropic Native] Processing request with native forwarding mode")
+
+    # TEMP DEBUG: 排查上游 400 Format Error 的临时日志,定位后删除
+    try:
+        def _shape(v, _d=0):
+            if isinstance(v, dict):
+                return {str(k)[:20]: _shape(x, _d + 1) for k, x in list(v.items())[:12]}
+            if isinstance(v, list):
+                return f"list[{len(v)}]" + (f":{_shape(v[0], _d + 1)}" if v else "")
+            if isinstance(v, str):
+                return f"str({len(v)})"
+            return type(v).__name__
+        logger.info(f"[Anthropic Native] DEBUG body_shape={json.dumps(_shape(body), ensure_ascii=False)}")
+        logger.info(f"[Anthropic Native] DEBUG version={anthropic_version!r} beta={anthropic_beta!r}")
+        logger.info(f"[Anthropic Native] DEBUG body_head={json.dumps(body, ensure_ascii=False)[:4000]}")
+    except Exception:
+        pass
     
     # 1. 构建目标 URL
     base_url = config["base_url"].rstrip("/")
@@ -1050,6 +1066,12 @@ async def _forward_anthropic_native(request: Request, body: Dict[str, Any], conf
     requested_model = body.get("model")
     body["model"] = config["model"]
     logger.info(f"[Anthropic Native] Model mapping: requested={requested_model!r} -> forwarded={config['model']!r}")
+
+    # 兼容部分第三方 Anthropic 端点：thinking={"type":"disabled"} 被误判为 Format Error。
+    # 语义上 thinking disabled 与不传该字段等价（不启用 extended thinking），直接剥离。
+    if isinstance(body.get("thinking"), dict) and body["thinking"].get("type") == "disabled":
+        logger.debug(f"[Anthropic Native] Stripping thinking=disabled for upstream compatibility")
+        body.pop("thinking")
 
     # 4. 判断流式/非流式
     is_stream = body.get("stream", False)
