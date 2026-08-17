@@ -345,9 +345,9 @@ class TestProxyService:
         payload = json.dumps({"choices": [{"delta": {"content": "你好世界"}}]}, ensure_ascii=False)
         full_message = f"data: {payload}\n\n".encode("utf-8")
         # 寻找一个在多字节字符中间的切点：第一个中文字符"你"的 3 字节中间
-        # "data: {\"choices\":...\"content\":\"" 前缀是 ASCII，然后 "你" 是 3 字节
-        # 找到 "你" 字节起点
-        marker = '"content":"'.encode("utf-8")
+        # "data: {..." 前缀是 ASCII，然后 "你" 是 3 字节。
+        # 注意：json.dumps 默认分隔符为 ": "（冒号后带空格），marker 需带空格才能匹配
+        marker = '"content": "'.encode("utf-8")
         marker_end = full_message.index(marker) + len(marker)
         # 切在"你"的第 2 字节之后（即中间）
         split_point = marker_end + 2
@@ -398,8 +398,8 @@ class TestProxyService:
 
         assert len(result) == 1
         assert result[0]["choices"][0]["delta"]["content"] == "ok"
-        # 应已自动补齐 decoder
-        assert len(buffer) == 2
+        # 应已自动补齐 decoder 与解析失败警告标志
+        assert len(buffer) == 3
 
     def test_parse_sse_chunks_with_buffer_is_final_flush(self, proxy_service):
         """测试 is_final=True 时能 flush 缓冲区中最后一条无结尾换行的消息"""
@@ -418,6 +418,83 @@ class TestProxyService:
         result2 = proxy_service.parse_sse_chunks_with_buffer(b"", buffer, is_final=True)
         assert len(result2) == 1
         assert result2[0]["choices"][0]["delta"]["content"] == "tail"
+
+    def test_parse_sse_chunks_with_buffer_handles_crlf_line_endings(self, proxy_service):
+        """测试上游使用 CRLF 行分隔的 SSE 流仍能正确解析
+
+        模拟中转网关返回 \r\n 行分隔 + \r\n\r\n 事件分隔的非标准（但 SSE 规范内）格式。
+        """
+        payload1 = json.dumps({"type": "content_block_delta", "index": 0})
+        payload2 = json.dumps({"type": "content_block_delta", "index": 1})
+        message = (
+            f"event: content_block_delta\r\ndata: {payload1}\r\n\r\n"
+            f"event: content_block_delta\r\ndata: {payload2}\r\n\r\n"
+        ).encode("utf-8")
+
+        buffer = ["", codecs.getincrementaldecoder("utf-8")()]
+        result = proxy_service.parse_sse_chunks_with_buffer(message, buffer)
+
+        assert len(result) == 2
+        assert result[0]["index"] == 0
+        assert result[1]["index"] == 1
+
+    def test_parse_sse_chunks_with_buffer_salvages_concatenated_events(self, proxy_service):
+        """测试事件间缺少空行分隔（粘连）时能扫描式挽救完整 JSON 事件
+
+        模拟场景：上游把两个事件挤在同一个 \\n\\n 分隔的 part 内，
+        data 行结束后直接跟下一个 event 行（实际线上偶发的 Format 告警来源）。
+        """
+        payload1 = json.dumps({"delta": {"partial_json": "my", "type": "input_json_delta"}, "type": "content_block_delta", "index": 2})
+        payload2 = json.dumps({"delta": {"partial_json": "Side", "type": "input_json_delta"}, "type": "content_block_delta", "index": 2})
+        # 事件间无空行：data:{json1} 后直接跟 event:...\ndata:{json2}，整体以 \n\n 结尾
+        message = (
+            f"event:content_block_delta\ndata:{payload1}"
+            f"event:content_block_delta\ndata:{payload2}\n\n"
+        ).encode("utf-8")
+
+        buffer = ["", codecs.getincrementaldecoder("utf-8")()]
+        result = proxy_service.parse_sse_chunks_with_buffer(message, buffer)
+
+        # 两个事件都应被挽救，而不是 drop
+        assert len(result) == 2
+        assert result[0]["delta"]["partial_json"] == "my"
+        assert result[1]["delta"]["partial_json"] == "Side"
+
+    def test_parse_sse_chunks_with_buffer_salvage_keeps_truncated_part_in_buffer(self, proxy_service):
+        """测试尾部不完整 part 仍走 buffer 暂存，不做 salvage（避免丢截断尾巴）"""
+        payload1 = json.dumps({"a": 1})
+        # 第二个 JSON 被截断，且整段不以 \n\n 结尾（last part）
+        message = f"data:{payload1}data:{{\"b\": 2".encode("utf-8")
+
+        buffer = ["", codecs.getincrementaldecoder("utf-8")()]
+        result = proxy_service.parse_sse_chunks_with_buffer(message, buffer)
+
+        # last part 且未结束：整体暂存，不提取 {a:1}（等拼接后完整解析）
+        assert result == []
+        assert "data:" in buffer[0]
+
+        # 下个 chunk 补全第二个 JSON 并以分隔符结束
+        second_chunk = "}}\n\n".encode("utf-8")
+        result2 = proxy_service.parse_sse_chunks_with_buffer(second_chunk, buffer)
+        assert len(result2) == 2
+        assert result2[0] == {"a": 1}
+        assert result2[1] == {"b": 2}
+
+    def test_parse_sse_chunks_with_buffer_warns_only_once_per_request(self, proxy_service):
+        """测试解析失败 WARNING 同一请求至多一条（降噪）"""
+        # 两段完全损坏的数据（无任何可挽救 JSON），以 \n\n 分隔
+        message = b"data: not-json-at-all\n\ndata: still-not-json\n\n"
+        buffer = ["", codecs.getincrementaldecoder("utf-8")()]
+
+        with patch("app.core.sse_parser.logger") as mock_logger:
+            result = proxy_service.parse_sse_chunks_with_buffer(message, buffer)
+            assert result == []
+            # WARNING 只应触发一次，第二次失败降级为 DEBUG
+            warning_calls = [c for c in mock_logger.warning.call_args_list]
+            assert len(warning_calls) == 1
+            # 警告标志已置位
+            assert buffer[2] is True
+
 
     def test_extract_usage_from_stream_chunks_handles_multiple_events(self, proxy_service):
         """测试从多个流式事件中提取最后的 usage"""

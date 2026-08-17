@@ -937,6 +937,72 @@ def _build_anthropic_usage_record(config: Dict[str, Any], usage: Dict[str, int],
 
 # ============ API 端点 ============
 
+
+def _truncate_for_log(s: str, limit: int) -> str:
+    """截断字符串用于日志，保留长度信息便于判断是否被截断"""
+    if len(s) <= limit:
+        return s
+    return f"{s[:limit]}...<<truncated, total_len={len(s)}>>"
+
+
+def _summarize_content_block_for_log(block: Any) -> Any:
+    """缩略单个内容块：保留完整结构（type/source 等字段），仅截断内容型字符串（text/data 等）"""
+    if not isinstance(block, dict):
+        return block
+    btype = block.get("type")
+    out = dict(block)  # 保留所有结构字段
+    if btype == "text" and isinstance(out.get("text"), str):
+        out["text"] = _truncate_for_log(out["text"], 500)
+    elif btype in ("image", "video", "document"):
+        source = out.get("source")
+        if isinstance(source, dict):
+            src = dict(source)
+            if isinstance(src.get("data"), str):
+                src["data"] = _truncate_for_log(src["data"], 200)
+            out["source"] = src
+    elif btype == "thinking" and isinstance(out.get("thinking"), str):
+        out["thinking"] = _truncate_for_log(out["thinking"], 500)
+    elif btype == "tool_result":
+        content = out.get("content")
+        if isinstance(content, str):
+            out["content"] = _truncate_for_log(content, 500)
+        elif isinstance(content, list):
+            out["content"] = [_summarize_content_block_for_log(c) if isinstance(c, dict) else c for c in content]
+    # tool_use / tool_result 的结构字段（id/name/input/tool_use_id/is_error）完整保留
+    return out
+
+
+def _summarize_messages_for_log(messages: List[Any]) -> List[Any]:
+    """缩略 messages 数组：role 与结构完整，仅 content 内容截断"""
+    summarized = []
+    for msg in messages:
+        if not isinstance(msg, dict):
+            summarized.append(msg)
+            continue
+        m = dict(msg)
+        content = m.get("content")
+        if isinstance(content, str):
+            m["content"] = _truncate_for_log(content, 500)
+        elif isinstance(content, list):
+            m["content"] = [_summarize_content_block_for_log(c) if isinstance(c, dict) else c for c in content]
+        summarized.append(m)
+    return summarized
+
+
+def _summarize_body_for_log(body: Dict[str, Any]) -> Dict[str, Any]:
+    """生成请求体日志的缩略版：顶层结构（model/max_tokens/tools/tool_choice 等）完整保留，
+    仅对 system 与 messages 的内容型字符串做截断，避免日志被大文本/图片 base64 刷屏"""
+    out = dict(body)
+    system = body.get("system")
+    if isinstance(system, str):
+        out["system"] = _truncate_for_log(system, 500)
+    elif isinstance(system, list):
+        out["system"] = [_summarize_content_block_for_log(s) if isinstance(s, dict) else s for s in system]
+    if isinstance(body.get("messages"), list):
+        out["messages"] = _summarize_messages_for_log(body["messages"])
+    return out
+
+
 @router.post("/messages")
 async def create_message(
     request: Request,
@@ -982,13 +1048,17 @@ async def create_message(
     # 4. 解析请求体
     body = await request.json()
     
-    # DEBUG: 打印输入请求
-    logger.debug(f"[Messages API] ========== 输入请求 ==========")
-    logger.debug(f"[Messages API] API Type: {api_type}")
-    logger.debug(f"[Messages API] Model: {body.get('model')}, Stream: {body.get('stream', False)}")
-    logger.debug(f"[Messages API] System: {body.get('system')!r}")
-    logger.debug(f"[Messages API] Roles in messages: {[m.get('role') for m in body.get('messages', [])]}")
-    logger.debug(f"[Messages API] Messages:\n{json.dumps(body.get('messages', []), ensure_ascii=False, indent=2)}")
+    # 打印输入请求（INFO 级别，生产环境可见；内容缩略，结构完整）
+    _request_id = getattr(request.state, "request_id", "unknown")
+    logger.info(
+        f"[Messages API] ========== 输入请求(缩略) ==========\n"
+        f"[Messages API] Request ID: {_request_id}\n"
+        f"[Messages API] API Type: {api_type}\n"
+        f"[Messages API] Model: {body.get('model')}, Stream: {body.get('stream', False)}\n"
+        f"[Messages API] Roles: {[m.get('role') for m in body.get('messages', [])]}\n"
+        f"[Messages API] Request Body:\n{json.dumps(_summarize_body_for_log(body), ensure_ascii=False, indent=2)}",
+        extra={"request_id": _request_id},
+    )
     
     # 5. 根据 api_type 选择处理方式
     if api_type == "anthropic_messages":
@@ -1050,6 +1120,15 @@ async def _forward_anthropic_native(request: Request, body: Dict[str, Any], conf
     requested_model = body.get("model")
     body["model"] = config["model"]
     logger.info(f"[Anthropic Native] Model mapping: requested={requested_model!r} -> forwarded={config['model']!r}")
+    # INFO: 打印最终发往上游的请求体（模型覆盖后，内容缩略、结构完整）
+    _upstream_request_id = getattr(request.state, "request_id", "unknown")
+    logger.info(
+        f"[Anthropic Native] ========== 上游请求体(缩略) ==========\n"
+        f"[Anthropic Native] Request ID: {_upstream_request_id}\n"
+        f"[Anthropic Native] Upstream URL: {base_url}\n"
+        f"[Anthropic Native] Request Body:\n{json.dumps(_summarize_body_for_log(body), ensure_ascii=False, indent=2)}",
+        extra={"request_id": _upstream_request_id},
+    )
 
     # 4. 判断流式/非流式
     is_stream = body.get("stream", False)
